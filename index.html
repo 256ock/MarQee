@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Postglider</title>
+    <!-- Google Fonts: Inter for general English/Numbers, and Noto Sans JP just in case Japanese content is displayed -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Noto+Sans+JP:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <main class="app-container">
+        <!-- Settings Header -->
+        <div class="modal-header">
+            <h2>Postglider Settings</h2>
+            <div class="header-toggle" style="display: flex; align-items: center; gap: 0.75rem;">
+                <span style="font-size: 0.95rem; font-weight: 600;">Show News Bar</span>
+                <label class="toggle-switch" aria-label="Show News Bar">
+                    <input type="checkbox" id="ticker-bar-toggle">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <div class="settings-layout">
+            <div class="tabs-nav vertical">
+                <button class="tab-btn active" data-tab="tab-feed">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg>
+                    Feeds
+                </button>
+                <button class="tab-btn" data-tab="tab-article">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    Articles
+                </button>
+                <button class="tab-btn" data-tab="tab-style">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
+                    Appearance
+                </button>
+                <button class="tab-btn" data-tab="tab-scroll">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12" y2="18"></line></svg>
+                    Scroll
+                </button>
+            </div>
+
+            <div class="modal-body">
+            <!-- Tab 1: Feed Management -->
+            <div class="tab-pane active" id="tab-feed">
+                <!-- RSS Fetch Interval Control -->
+                <div class="settings-section">
+                    <h3>Update Settings</h3>
+                    <div class="setting-row">
+                        <div class="setting-label">
+                            <span class="setting-title">Update Interval</span>
+                            <span class="setting-desc">How often to check for news (minutes)</span>
+                        </div>
+                        <div class="speed-control" title="Adjust update interval">
+                            <input type="range" id="interval-slider" min="1" max="60" step="1" value="15"
+                                aria-label="Interval adjustment">
+                            <span id="interval-value" class="speed-val">15m</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-section feed-form-container">
+                    <h3 id="form-title">Add Feed</h3>
+                    <div class="form-group">
+                        <label for="new-genre-name">Source Name</label>
+                        <input type="text" id="new-genre-name" placeholder="e.g., World News">
+                    </div>
+                    <div class="form-group">
+                        <label for="new-feed-url">RSS URL</label>
+                        <input type="url" id="new-feed-url" placeholder="https://example.com/rss.xml">
+                    </div>
+                    <div class="form-actions">
+                        <button id="add-feed-btn" class="primary-btn">Add</button>
+                        <button id="cancel-edit-btn" class="secondary-btn" style="display: none;">Cancel</button>
+                    </div>
+                </div>
+
+                <div class="settings-section feed-list-container">
+                    <h3>Registered Feeds</h3>
+                    <ul class="feed-list" id="feed-list">
+                        <!-- Feed items will be injected here -->
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Tab 2: Article Processing -->
+            <div class="tab-pane" id="tab-article">
+                <div class="settings-section">
+                    <h3>Article Settings</h3>
+
+                    <!-- Article Age Filter Toggle -->
+                    <div class="setting-row">
+                        <div class="setting-label">
+                            <span class="setting-title">Show Recent Only</span>
+                            <span class="setting-desc">Only show articles within a time window</span>
+                        </div>
+                        <label class="toggle-switch" aria-label="Show Recent Only">
+                            <input type="checkbox" id="article-age-filter-toggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <!-- Article Age Hours Slider -->
+                    <div class="setting-row" id="article-age-row" style="display: none;">
+                        <div class="setting-label">
+                            <span class="setting-title">Time Window</span>
+                            <span class="setting-desc">Show articles from the last X hours</span>
+                        </div>
+                        <div class="speed-control">
+                            <input type="range" id="article-age-slider" min="1" max="72" step="1" value="24"
+                                aria-label="Article age filter hours">
+                            <span id="article-age-value" class="speed-val">24h</span>
+                        </div>
+                    </div>
+
+                    <!-- Article Sort Order -->
+                    <div class="setting-row">
+                        <div class="setting-label">
+                            <span class="setting-title">Sort Order</span>
+                            <span class="setting-desc">Order in which articles are shown</span>
+                        </div>
+                        <select id="article-sort-select" class="custom-select">
+                            <option value="chrono">Newest First</option>
+                            <option value="random">Random</option>
+                        </select>
+                    </div>
+
+                    <!-- Blink New Articles Toggle -->
+                    <div class="setting-row">
+                        <div class="setting-label">
+                            <span class="setting-title">Blink New Articles</span>
+                            <span class="setting-desc">Highlight news from the last hour</span>
+                        </div>
+                        <label class="toggle-switch" aria-label="Blink New Articles">
+                            <input type="checkbox" id="blink-new-toggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <!-- Article Grouping -->
+                    <div class="setting-row">
+                        <div class="setting-label">
+                            <span class="setting-title">Display Mode</span>
+                            <span class="setting-desc">Group by source or mix them all</span>
+                        </div>
+                        <select id="article-group-select" class="custom-select">
+                            <option value="grouped">Group by Source</option>
+                            <option value="mixed">Mixed</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 3: Visual Style -->
+            <div class="tab-pane" id="tab-style">
+                <div class="settings-section">
+                    <h3>Style Customization</h3>
+
+                    <!-- Color Scheme Selection -->
+                    <div class="setting-row">
+                        <div class="setting-label">
+                            <span class="setting-title">Color Scheme</span>
+                            <span class="setting-desc">Change the news bar colors</span>
+                        </div>
+                        <select id="color-scheme-select" class="custom-select">
+                            <option value="system">System (Default)</option>
+                            <option value="light">Light</option>
+                            <option value="dark">Dark</option>
+                            <option value="neon-blue">Neon Blue</option>
+                            <option value="amber">Amber (Retro)</option>
+                            <option value="tricolor">Tricolor LED</option>
+                            <option value="emerald">Emerald</option>
+                             <option value="monochrome">Monochrome</option>
+                        </select>
+                    </div>
+
+                    <!-- Custom Scheme Colors (Nested) -->
+                    <div id="custom-colors-container" class="sub-settings-container">
+                        <!-- Light Mode Color Picker -->
+                        <div id="group-light-color" class="setting-row sub-row">
+                            <div class="setting-label">
+                                <span class="setting-title">Light Mode Text</span>
+                            </div>
+                            <div class="color-picker-group">
+                                <input type="color" id="color-light-picker" value="#2563eb">
+                                <button id="reset-light-color" class="reset-btn" title="Reset to default">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M8 16H3v5"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Dark Mode Color Picker -->
+                        <div id="group-dark-color" class="setting-row sub-row">
+                            <div class="setting-label">
+                                <span class="setting-title">Dark Mode Text</span>
+                            </div>
+                            <div class="color-picker-group">
+                                <input type="color" id="color-dark-picker" value="#3b82f6">
+                                <button id="reset-dark-color" class="reset-btn" title="Reset to default">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M8 16H3v5"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Tricolor LED Customization -->
+                        <div id="group-tricolor-color">
+                            <div class="setting-row sub-row">
+                                <div class="setting-label">
+                                    <span class="setting-title">Article Title</span>
+                                </div>
+                                <select id="tricolor-link-select" class="custom-select mini">
+                                    <option value="#ffb000">Orange</option>
+                                    <option value="#00ff41">Green</option>
+                                    <option value="#ff4d4d">Red</option>
+                                </select>
+                            </div>
+                            <div class="setting-row sub-row">
+                                <div class="setting-label">
+                                    <span class="setting-title">Timestamp</span>
+                                </div>
+                                <select id="tricolor-time-select" class="custom-select mini">
+                                    <option value="#ffb000">Orange</option>
+                                    <option value="#00ff41">Green</option>
+                                    <option value="#ff4d4d">Red</option>
+                                </select>
+                            </div>
+                            <div class="setting-row sub-row">
+                                <div class="setting-label">
+                                    <span class="setting-title">Source Name</span>
+                                </div>
+                                <select id="tricolor-source-select" class="custom-select mini">
+                                    <option value="#ffb000">Orange</option>
+                                    <option value="#00ff41">Green</option>
+                                    <option value="#ff4d4d">Red</option>
+                                </select>
+                            </div>
+                            <div class="setting-row sub-row" style="justify-content: flex-end; padding-top: 0.5rem; padding-bottom: 0.5rem;">
+                                <button id="reset-tricolor-colors" class="secondary-btn mini">Reset Tricolor Defaults</button>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- Font Weight Selection -->
+                    <div class="setting-row">
+                        <div class="setting-label">
+                            <span class="setting-title">Font Weight</span>
+                            <span class="setting-desc">Adjust the thickness of the text</span>
+                        </div>
+                        <select id="font-weight-select" class="custom-select">
+                            <option value="light">Light</option>
+                            <option value="normal" selected>Normal</option>
+                            <option value="bold">Bold</option>
+                        </select>
+                    </div>
+
+                    <!-- Font Size Control -->
+                    <div class="setting-row">
+                        <div class="setting-label">
+                            <span class="setting-title">Font Size</span>
+                            <span class="setting-desc">Adjust the size of the ticker text</span>
+                        </div>
+                        <div class="speed-control">
+                            <input type="range" id="font-size-slider" min="10" max="24" step="1" value="14"
+                                aria-label="Font size adjustment">
+                            <span id="font-size-value" class="speed-val">14px</span>
+                        </div>
+                    </div>
+
+                    <!-- Visual Effect Selection (Segmented Control) -->
+                    <div class="setting-row" id="visual-effect-row">
+                        <div class="setting-label">
+                            <span class="setting-title">Visual Effect</span>
+                            <span class="setting-desc">Choose a premium overlay effect</span>
+                        </div>
+                        <div class="position-toggle" id="visual-effect-options">
+                            <button class="pos-btn active" data-effect="none">None</button>
+                            <button class="pos-btn" data-effect="glass">Glass</button>
+                            <button class="pos-btn" data-effect="led">LED</button>
+                        </div>
+                    </div>
+
+                    <!-- Glass Blur Intensity -->
+                    <div class="setting-row" id="glass-blur-row" style="display:none;">
+                        <div class="setting-label">
+                            <span class="setting-title">Blur Intensity</span>
+                            <span class="setting-desc">Adjust the background blur strength</span>
+                        </div>
+                        <div class="slider-container">
+                            <input type="range" id="glass-blur-slider" min="0" max="20" step="1" value="12">
+                            <span id="glass-blur-value">12px</span>
+                        </div>
+                    </div>
+
+                    <!-- LED Blend Mode -->
+                    <div class="setting-row" id="led-blend-mode-row">
+                        <div class="setting-label">
+                            <span class="setting-title">Blend Mode</span>
+                            <span class="setting-desc">How the LED grid combines with text</span>
+                        </div>
+                        <select id="led-blend-mode-select" class="custom-select">
+                            <option value="screen">Screen</option>
+                            <option value="overlay" selected>Overlay</option>
+                            <option value="lighten">Lighten</option>
+                            <option value="color-dodge">Color Dodge</option>
+                            <option value="soft-light">Soft Light</option>
+                            <option value="difference">Difference</option>
+                        </select>
+                    </div>
+
+                    <!-- LED Grid Opacity -->
+                    <div class="setting-row" id="led-opacity-row">
+                        <div class="setting-label">
+                            <span class="setting-title">Grid Opacity</span>
+                            <span class="setting-desc">Adjust the visibility of the LED grid</span>
+                        </div>
+                        <div class="speed-control">
+                            <input type="range" id="led-opacity-slider" min="0" max="1" step="0.1" value="0.6"
+                                aria-label="Grid opacity adjustment">
+                            <span id="led-opacity-value" class="speed-val">0.6</span>
+                        </div>
+                    </div>
+
+
+                </div>
+            </div>
+
+            <!-- Tab 4: Scroll Behavior -->
+            <div class="tab-pane" id="tab-scroll">
+                <div class="settings-section">
+                    <h3>General Settings</h3>
+                    <!-- Ticker Bar Position -->
+                    <div class="setting-row">
+                        <div class="setting-label">
+                            <span class="setting-title">Position</span>
+                            <span class="setting-desc">Display at the top or bottom</span>
+                        </div>
+                        <div class="position-toggle" id="ticker-pos-options">
+                            <button class="pos-btn active" data-pos="top">Top</button>
+                            <button class="pos-btn" data-pos="bottom">Bottom</button>
+                        </div>
+                    </div>
+
+                    <!-- Shift Fixed Elements -->
+                    <div class="setting-row" id="shift-fixed-row">
+                        <div class="setting-label">
+                            <span class="setting-title">Shift Fixed Elements</span>
+                            <span class="setting-desc" style="color: #f59e0b;">(Experimental) Push down sticky sites</span>
+                        </div>
+                        <label class="toggle-switch" aria-label="Shift Fixed Elements">
+                            <input type="checkbox" id="shift-fixed-toggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <!-- Hover Pause Toggle -->
+                    <div class="setting-row">
+                        <div class="setting-label">
+                            <span class="setting-title">Pause on Hover</span>
+                            <span class="setting-desc">Stop scrolling when cursor is over news</span>
+                        </div>
+                        <label class="toggle-switch" aria-label="Pause on Hover">
+                            <input type="checkbox" id="hover-pause-toggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <!-- Scroll Mode Selection -->
+                    <div class="setting-row">
+                        <div class="setting-label">
+                            <span class="setting-title">Scroll Mode</span>
+                            <span class="setting-desc">Choose how news items appear</span>
+                        </div>
+                        <select id="scroll-mode-select" class="custom-select">
+                            <option value="horizontal">Horizontal Scroll</option>
+                            <option value="vertical-push">Vertical Push</option>
+                        </select>
+                    </div>
+
+                    <!-- Speed Control (Horizontal) -->
+                    <div class="setting-row" id="speed-control-row">
+                        <div class="setting-label">
+                            <span class="setting-title">Scroll Speed</span>
+                            <span class="setting-desc">Adjust how fast the news flows</span>
+                        </div>
+                        <div class="speed-control" title="Adjust scroll speed">
+                            <input type="range" id="speed-slider" min="0.5" max="3.0" step="0.1" value="1.0"
+                                aria-label="Speed adjustment">
+                            <span id="speed-value" class="speed-val">1.0x</span>
+                        </div>
+                    </div>
+
+                    <!-- Pause Duration (Vertical) -->
+                    <div class="setting-row" id="pause-duration-row" style="display: none;">
+                        <div class="setting-label">
+                            <span class="setting-title">Pause Duration</span>
+                            <span class="setting-desc">Time to stay on each article (s)</span>
+                        </div>
+                        <div class="speed-control">
+                            <input type="range" id="pause-slider" min="1" max="10" step="1" value="3"
+                                aria-label="Pause duration adjustment">
+                            <span id="pause-value" class="speed-val">3s</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+
+    <script src="script.js"></script>
+</body>
+
+</html>
