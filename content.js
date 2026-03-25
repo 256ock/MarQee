@@ -31,13 +31,13 @@
     let rssIsUpdated = false;
 
 
-    let currentVerticalItems = 0;
+    let currentPushItems = 0;
     let container = null;
     let track = null;
     let shadow = null;
     let styleElement = null;
-    let verticalInterval = null;
-    let currentVerticalIndex = 0;
+    let pushInterval = null;
+    let currentPushIndex = 0;
     let navButtonsEl = null;
     let navUpBtn = null;
     let navDownBtn = null;
@@ -158,7 +158,7 @@
         navUpBtn.disabled = true;
         navUpBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            navigateVertical(-1);
+            navigatePush(-1);
         });
 
         navDownBtn = document.createElement('button');
@@ -166,7 +166,7 @@
         navDownBtn.textContent = '▼';
         navDownBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            navigateVertical(1);
+            navigatePush(1);
         });
 
         navButtonsEl.append(navUpBtn, navDownBtn);
@@ -266,7 +266,7 @@
 
     function applyModeClasses() {
         if (!container) return;
-        container.classList.remove('nt-mode-horizontal', 'nt-mode-vertical-push');
+        container.classList.remove('nt-mode-horizontal', 'nt-mode-horizontal-push', 'nt-mode-vertical-push');
         container.classList.add(`nt-mode-${scrollMode}`);
     }
 
@@ -309,7 +309,7 @@
     }
 
     function removeTicker() {
-        if (verticalInterval) clearTimeout(verticalInterval);
+        if (pushInterval) clearTimeout(pushInterval);
         if (container) {
             unshiftFixedElements();
             container.remove();
@@ -359,7 +359,7 @@
             const results = await Promise.all(fetchPromises);
 
             // Restore state from session storage
-            const state = await chrome.storage.session.get(['newsTickerProgress', 'newsTickerTimestamp', 'newsTickerShuffleSeed', 'newsTickerVerticalIndex']);
+            const state = await chrome.storage.session.get(['newsTickerProgress', 'newsTickerTimestamp', 'newsTickerShuffleSeed', 'newsTickerPushIndex']);
             let shuffleSeed = state.newsTickerShuffleSeed;
 
             // Generate new seed if RSS updated or seed missing
@@ -442,20 +442,30 @@
                 fragment.appendChild(itemDiv);
             });
 
-            if (scrollMode === 'vertical-push') {
-                const barHeight = fontSize + 18;
+            if (scrollMode === 'vertical-push' || scrollMode === 'horizontal-push') {
+                const isVertical = scrollMode === 'vertical-push';
                 const blankStart = document.createElement('div');
                 blankStart.className = 'nt-item nt-blank';
-                blankStart.style.height = `${barHeight}px`;
+                if (isVertical) {
+                    const barHeight = fontSize + 18;
+                    blankStart.style.height = `${barHeight}px`;
+                } else {
+                    blankStart.style.width = '100vw';
+                }
                 fragment.prepend(blankStart);
 
                 const blankEnd = document.createElement('div');
                 blankEnd.className = 'nt-item nt-blank';
-                blankEnd.style.height = `${barHeight}px`;
+                if (isVertical) {
+                    const barHeight = fontSize + 18;
+                    blankEnd.style.height = `${barHeight}px`;
+                } else {
+                    blankEnd.style.width = '100vw';
+                }
                 fragment.appendChild(blankEnd);
             }
 
-            currentVerticalItems = scrollMode === 'vertical-push' ? itemsToRender.length + 2 : itemsToRender.length;
+            currentPushItems = (scrollMode === 'vertical-push' || scrollMode === 'horizontal-push') ? itemsToRender.length + 2 : itemsToRender.length;
             track.replaceChildren(fragment);
 
             function applyScroll() {
@@ -485,66 +495,73 @@
                     track.style.animationDelay = `-${progress * duration}s`;
                     track.style.animationName = 'nt-scroll';
                 } else {
-                    // Vertical Push Mode
+                    // Push Mode
                     track.style.animation = 'none';
                     if (rssIsUpdated) {
-                        currentVerticalIndex = 0;
+                        currentPushIndex = 0;
                     } else {
-                        currentVerticalIndex = state.newsTickerVerticalIndex || 0;
+                        currentPushIndex = state.newsTickerPushIndex || 0;
                     }
-                    if (currentVerticalIndex >= (currentVerticalItems || 1)) currentVerticalIndex = 0;
+                    if (currentPushIndex >= (currentPushItems || 1)) currentPushIndex = 0;
                     
                     // Disable transition temporarily to prevent "catch-up" jump
                     track.style.transition = 'none';
-                    const barHeight = fontSize + 18;
-                    track.style.transform = `translateY(-${currentVerticalIndex * barHeight}px)`;
+                    if (scrollMode === 'vertical-push') {
+                        const barHeight = fontSize + 18;
+                        track.style.transform = `translateY(-${currentPushIndex * barHeight}px)`;
+                    } else {
+                        track.style.transform = `translateX(-${currentPushIndex * 100}vw)`;
+                    }
                     // Force reflow
                     track.offsetHeight;
                     track.style.transition = '';
                     
-                    startVerticalPush();
+                    startPushAnimation();
 
                     if (rssIsUpdated) {
-                        chrome.storage.session.remove(['newsTickerProgress', 'newsTickerTimestamp', 'newsTickerVerticalIndex']);
+                        chrome.storage.session.remove(['newsTickerProgress', 'newsTickerTimestamp', 'newsTickerPushIndex']);
                     }
                 }
             }
 
-            function startVerticalPush() {
-                if (verticalInterval) clearTimeout(verticalInterval);
-                if (currentVerticalItems <= 1) return;
-                startVerticalPush_ref = startVerticalPush;
+            function startPushAnimation() {
+                if (pushInterval) clearTimeout(pushInterval);
+                if (currentPushItems <= 1) return;
+                startPushAnimation_ref = startPushAnimation;
 
-                const totalItems = currentVerticalItems;
+                const totalItems = currentPushItems;
 
                 function tick() {
-                    verticalInterval = setTimeout(() => {
+                    pushInterval = setTimeout(() => {
                         // Check if mouse is hovering and pause is enabled
                         if (hoverPause && container && container.matches(':hover')) {
-                            tick(); // Check again after the same delay (though really we might want a shorter check)
+                            tick(); 
                             return;
                         }
 
-                        currentVerticalIndex++;
-                        if (currentVerticalIndex >= totalItems) {
-                            // Reset to first item (the prepended blank) instantly
+                        currentPushIndex++;
+                        if (currentPushIndex >= totalItems) {
+                            // Reset instantly
                             track.style.transition = 'none';
-                            currentVerticalIndex = 0;
-                            track.style.transform = `translateY(0)`;
+                            currentPushIndex = 0;
+                            track.style.transform = (scrollMode === 'vertical-push') ? `translateY(0)` : `translateX(0)`;
                             // Force reflow
                             track.offsetHeight;
                             track.style.transition = '';
                             updateNavButtons();
                             
-                            // Immediately push the first article after reset
-                            startVerticalPush(); 
+                            startPushAnimation(); 
                         } else {
-                            const barHeight = fontSize + 18;
-                            track.style.transform = `translateY(-${currentVerticalIndex * barHeight}px)`;
+                            if (scrollMode === 'vertical-push') {
+                                const barHeight = fontSize + 18;
+                                track.style.transform = `translateY(-${currentPushIndex * barHeight}px)`;
+                            } else {
+                                track.style.transform = `translateX(-${currentPushIndex * 100}vw)`;
+                            }
                             updateNavButtons();
                             tick();
                         }
-                    }, (currentVerticalIndex === 0) ? 50 : (currentVerticalIndex === totalItems - 1) ? 500 : verticalPause * 1000);
+                    }, (currentPushIndex === 0) ? 50 : (currentPushIndex === totalItems - 1) ? 500 : verticalPause * 1000);
                 }
 
                 tick();
@@ -586,31 +603,34 @@
 
     function updateNavButtons() {
         if (!navUpBtn || !navDownBtn) return;
-        if (scrollMode !== 'vertical-push') return;
-        // In vertical-push, index 0 = blank start, articles are 1..N, index N+1 = blank end
-        // First visible article is at index 1, last is at currentVerticalItems - 2
-        navUpBtn.disabled = (currentVerticalIndex <= 1);
-        navDownBtn.disabled = (currentVerticalIndex >= currentVerticalItems - 2);
+        if (scrollMode !== 'vertical-push' && scrollMode !== 'horizontal-push') return;
+        // In push mode, index 0 = blank start, articles are 1..N, index N+1 = blank end
+        navUpBtn.disabled = (currentPushIndex <= 1);
+        navDownBtn.disabled = (currentPushIndex >= currentPushItems - 2);
     }
 
-    function navigateVertical(direction) {
-        if (scrollMode !== 'vertical-push' || !track) return;
-        const newIndex = currentVerticalIndex + direction;
-        // Clamp: articles are at indices 1..(currentVerticalItems - 2)
-        if (newIndex < 1 || newIndex > currentVerticalItems - 2) return;
+    function navigatePush(direction) {
+        if ((scrollMode !== 'vertical-push' && scrollMode !== 'horizontal-push') || !track) return;
+        const newIndex = currentPushIndex + direction;
+        // Clamp: articles are at indices 1..(currentPushItems - 2)
+        if (newIndex < 1 || newIndex > currentPushItems - 2) return;
 
-        currentVerticalIndex = newIndex;
-        const barHeight = fontSize + 18;
-        track.style.transform = `translateY(-${currentVerticalIndex * barHeight}px)`;
+        currentPushIndex = newIndex;
+        if (scrollMode === 'vertical-push') {
+            const barHeight = fontSize + 18;
+            track.style.transform = `translateY(-${currentPushIndex * barHeight}px)`;
+        } else {
+            track.style.transform = `translateX(-${currentPushIndex * 100}vw)`;
+        }
         updateNavButtons();
 
         // Reset auto-advance timer
-        if (verticalInterval) clearTimeout(verticalInterval);
-        startVerticalPush_ref();
+        if (pushInterval) clearTimeout(pushInterval);
+        startPushAnimation_ref();
     }
 
-    // Reference holder for startVerticalPush to be callable from navigateVertical
-    let startVerticalPush_ref = () => {};
+    // Reference holder for push animation to be callable from manual navigation
+    let startPushAnimation_ref = () => {};
 
     function shuffleArray(array, seed) {
         // Simple LCG for reproducible random
@@ -724,7 +744,7 @@
         }
         if (changes.newsTickerVerticalPause) {
             verticalPause = changes.newsTickerVerticalPause.newValue;
-            if (scrollMode === 'vertical-push') {
+            if (scrollMode === 'vertical-push' || scrollMode === 'horizontal-push') {
                 loadAndRender();
             }
         }
@@ -732,7 +752,7 @@
             fontSize = changes.newsTickerFontSize.newValue;
             applyStyleClasses();
             updateBodyPadding();
-            if (scrollMode === 'vertical-push') {
+            if (scrollMode === 'vertical-push' || scrollMode === 'horizontal-push') {
                 loadAndRender();
             }
         }
@@ -791,6 +811,11 @@
     function saveTickerProgress() {
         if (!track || !isVisible) return;
         
+        if (scrollMode === 'vertical-push' || scrollMode === 'horizontal-push') {
+            chrome.storage.session.set({ newsTickerPushIndex: currentPushIndex });
+            return;
+        }
+
         if (scrollMode === 'horizontal') {
             const computedStyle = window.getComputedStyle(track);
             const transform = computedStyle.getPropertyValue('transform');

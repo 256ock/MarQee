@@ -238,7 +238,7 @@ async function saveScrollMode(mode) {
 
 function updateScrollControlVisibility() {
     if (speedControlRow) speedControlRow.style.display = scrollMode === 'horizontal' ? 'flex' : 'none';
-    if (pauseDurationRow) pauseDurationRow.style.display = scrollMode === 'vertical-push' ? 'flex' : 'none';
+    if (pauseDurationRow) pauseDurationRow.style.display = (scrollMode === 'vertical-push' || scrollMode === 'horizontal-push') ? 'flex' : 'none';
 }
 
 async function loadStyleSettings() {

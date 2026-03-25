@@ -180,6 +180,28 @@
     flex-shrink: 0;
 }
 
+/* Horizontal Push Mode */
+:host(.nt-mode-horizontal-push) {
+    justify-content: flex-start;
+}
+
+:host(.nt-mode-horizontal-push) #nt-track {
+    flex-direction: row;
+    width: max-content;
+    padding-left: 0;
+    gap: 0;
+    animation: none;
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+:host(.nt-mode-horizontal-push) .nt-item {
+    width: 100vw;
+    justify-content: center;
+    flex-shrink: 0;
+    margin: 0;
+    padding: 0;
+}
+
 .nt-item {
     display: flex;
     align-items: center;
