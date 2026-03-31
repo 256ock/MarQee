@@ -116,8 +116,23 @@
 
         if (isVisible && feeds.length > 0 && !isExcluded) {
             activeFeedId = feeds[0].id;
-            await createTicker();
-            loadAndRender();
+            
+            // Reserve height immediately to prevent layout shift
+            updateBodyPadding();
+
+            // Wait for document.body to be available before injecting the ticker
+            if (document.body) {
+                await createTicker();
+                loadAndRender();
+            } else {
+                const observer = new MutationObserver((mutations, obs) => {
+                    if (document.body) {
+                        obs.disconnect();
+                        createTicker().then(() => loadAndRender());
+                    }
+                });
+                observer.observe(document.documentElement, { childList: true });
+            }
         }
     }
 
@@ -302,14 +317,18 @@
 
     function updateBodyPadding() {
         unshiftFixedElements();
-        if (!container) return;
         const barHeight = fontSize + 18;
-        if (position === 'top') {
-            document.documentElement.style.setProperty('margin-top', `${barHeight}px`, 'important');
-            // Allow DOM to settle before shifting fixed elements
-            setTimeout(shiftFixedElements, 100);
+        if (isVisible) {
+            if (position === 'top') {
+                document.documentElement.style.setProperty('margin-top', `${barHeight}px`, 'important');
+                // Allow DOM to settle before shifting fixed elements
+                setTimeout(shiftFixedElements, 100);
+            } else {
+                document.documentElement.style.setProperty('margin-bottom', `${barHeight}px`, 'important');
+            }
         } else {
-            document.documentElement.style.setProperty('margin-bottom', `${barHeight}px`, 'important');
+            document.documentElement.style.removeProperty('margin-top');
+            document.documentElement.style.removeProperty('margin-bottom');
         }
     }
 
