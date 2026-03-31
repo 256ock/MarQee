@@ -89,6 +89,7 @@ const articleAgeValueDisplay = document.getElementById('article-age-value');
 const articleAgeRow = document.getElementById('article-age-row');
 const excludedDomainsTextarea = document.getElementById('excluded-domains-textarea');
 const saveDomainsBtn = document.getElementById('save-domains-btn');
+const addCurrentDomainBtn = document.getElementById('add-current-domain-btn');
 
 const colorLightPicker = document.getElementById('color-light-picker');
 const colorDarkPicker = document.getElementById('color-dark-picker');
@@ -494,6 +495,55 @@ async function saveExcludedDomains() {
     }
 }
 
+async function handleAddCurrentDomain() {
+    try {
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        if (!tab || !tab.url) return;
+
+        let url;
+        try {
+            url = new URL(tab.url);
+        } catch (e) {
+            // Probably not a standard URL (e.g. chrome://)
+            return;
+        }
+        
+        const domain = url.hostname;
+        if (!domain) return;
+
+        if (!excludedDomains.includes(domain)) {
+            excludedDomains.push(domain);
+            updateExcludedDomainsUI();
+            await chrome.storage.local.set({ 'newsTickerExcludedDomains': excludedDomains });
+
+            // Visual feedback
+            if (addCurrentDomainBtn) {
+                const originalText = addCurrentDomainBtn.textContent;
+                addCurrentDomainBtn.textContent = 'Added!';
+                addCurrentDomainBtn.style.background = 'var(--live-red)';
+                addCurrentDomainBtn.style.color = 'white';
+                setTimeout(() => {
+                    addCurrentDomainBtn.textContent = originalText;
+                    addCurrentDomainBtn.style.background = '';
+                    addCurrentDomainBtn.style.color = '';
+                }, 2000);
+            }
+        } else {
+            // Already added feedback
+            if (addCurrentDomainBtn) {
+                const originalText = addCurrentDomainBtn.textContent;
+                addCurrentDomainBtn.textContent = 'Already Added';
+                setTimeout(() => {
+                    addCurrentDomainBtn.textContent = originalText;
+                }, 2000);
+            }
+        }
+    } catch (error) {
+        console.error('Error adding current domain:', error);
+    }
+}
+
+
 function updateExcludedDomainsUI() {
     if (excludedDomainsTextarea) {
         excludedDomainsTextarea.value = excludedDomains.join('\n');
@@ -836,6 +886,10 @@ async function init() {
 
     if (saveDomainsBtn) {
         saveDomainsBtn.addEventListener('click', saveExcludedDomains);
+    }
+
+    if (addCurrentDomainBtn) {
+        addCurrentDomainBtn.addEventListener('click', handleAddCurrentDomain);
     }
 
     if (colorSchemeSelect) {
