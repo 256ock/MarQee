@@ -27,6 +27,7 @@ let verticalPause = 3; // default: 3 seconds
 let currentFontSize = 14; // default: 14px
 let articleAgeFilterEnabled = false;
 let articleAgeHours = 24;
+let excludedDomains = [];
 
 const DEFAULT_COLOR_LIGHT = '#2563eb';
 const DEFAULT_COLOR_DARK = '#3b82f6';
@@ -86,6 +87,8 @@ const articleAgeFilterToggle = document.getElementById('article-age-filter-toggl
 const articleAgeSlider = document.getElementById('article-age-slider');
 const articleAgeValueDisplay = document.getElementById('article-age-value');
 const articleAgeRow = document.getElementById('article-age-row');
+const excludedDomainsTextarea = document.getElementById('excluded-domains-textarea');
+const saveDomainsBtn = document.getElementById('save-domains-btn');
 
 const colorLightPicker = document.getElementById('color-light-picker');
 const colorDarkPicker = document.getElementById('color-dark-picker');
@@ -454,12 +457,13 @@ function updateLEDSettingVisibility() {
 }
 
 async function loadArticleSettings() {
-    const data = await chrome.storage.local.get(['newsTickerArticleSort', 'newsTickerArticleGroup', 'newsTickerBlinkNew', 'newsTickerAgeFilterEnabled', 'newsTickerAgeHours']);
+    const data = await chrome.storage.local.get(['newsTickerArticleSort', 'newsTickerArticleGroup', 'newsTickerBlinkNew', 'newsTickerAgeFilterEnabled', 'newsTickerAgeHours', 'newsTickerExcludedDomains']);
     articleSortOrder = data.newsTickerArticleSort || 'chrono';
     articleGrouping = data.newsTickerArticleGroup || 'grouped';
     blinkNewEnabled = data.newsTickerBlinkNew !== undefined ? data.newsTickerBlinkNew : true;
     articleAgeFilterEnabled = data.newsTickerAgeFilterEnabled || false;
     articleAgeHours = data.newsTickerAgeHours || 24;
+    excludedDomains = data.newsTickerExcludedDomains || [];
 
     if (articleSortSelect) articleSortSelect.value = articleSortOrder;
     if (articleGroupSelect) articleGroupSelect.value = articleGrouping;
@@ -470,6 +474,30 @@ async function loadArticleSettings() {
         updateAgeHoursDisplay(articleAgeHours);
     }
     updateAgeFilterVisibility();
+    updateExcludedDomainsUI();
+}
+
+async function saveExcludedDomains() {
+    const text = excludedDomainsTextarea.value.trim();
+    excludedDomains = text ? text.split('\n').map(d => d.trim()).filter(d => d !== '') : [];
+    await chrome.storage.local.set({ 'newsTickerExcludedDomains': excludedDomains });
+    
+    // Pulse animation on button to show save success
+    if (saveDomainsBtn) {
+        const originalText = saveDomainsBtn.textContent;
+        saveDomainsBtn.textContent = 'Saved!';
+        saveDomainsBtn.style.background = 'var(--live-red)';
+        setTimeout(() => {
+            saveDomainsBtn.textContent = originalText;
+            saveDomainsBtn.style.background = '';
+        }, 2000);
+    }
+}
+
+function updateExcludedDomainsUI() {
+    if (excludedDomainsTextarea) {
+        excludedDomainsTextarea.value = excludedDomains.join('\n');
+    }
 }
 
 async function saveBlinkNew(enabled) {
@@ -799,8 +827,15 @@ async function init() {
 
     if (intervalSlider) {
         intervalSlider.addEventListener('input', (e) => {
+            updateIntervalDisplay(e.target.value);
+        });
+        intervalSlider.addEventListener('change', (e) => {
             saveInterval(e.target.value);
         });
+    }
+
+    if (saveDomainsBtn) {
+        saveDomainsBtn.addEventListener('click', saveExcludedDomains);
     }
 
     if (colorSchemeSelect) {

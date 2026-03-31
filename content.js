@@ -22,6 +22,7 @@
     let articleAgeHours = 24;
     let glassmorphismEnabled = false;
     let glassBlur = 12;
+    let excludedDomains = [];
     let customColorLight = '#2563eb';
     let customColorDark = '#3b82f6';
     let customColorTricolor = '#ff4d4d';
@@ -70,7 +71,8 @@
             'newsTickerCustomColorTricolor',
             'newsTickerTricolorLink',
             'newsTickerTricolorTime',
-            'newsTickerTricolorSource'
+            'newsTickerTricolorSource',
+            'newsTickerExcludedDomains'
         ]);
         feeds = data.newsTickerFeeds || [];
         speed = data.newsTickerSpeed || 1.0;
@@ -100,6 +102,7 @@
         tricolorLinkColor = data.newsTickerTricolorLink || '#ffb000';
         tricolorTimeColor = data.newsTickerTricolorTime || '#ff4d4d';
         tricolorSourceColor = data.newsTickerTricolorSource || '#00ff41';
+        excludedDomains = data.newsTickerExcludedDomains || [];
 
 
         
@@ -108,8 +111,10 @@
             if (data.newsTickerLEDStyle) visualEffect = 'led';
             else if (data.newsTickerGlassmorphism) visualEffect = 'glass';
         }
+        
+        const isExcluded = excludedDomains.some(domain => window.location.hostname === domain || window.location.hostname.endsWith('.' + domain));
 
-        if (isVisible && feeds.length > 0) {
+        if (isVisible && feeds.length > 0 && !isExcluded) {
             activeFeedId = feeds[0].id;
             await createTicker();
             loadAndRender();
@@ -797,6 +802,16 @@
         if (changes.newsTickerTricolorSource) {
             tricolorSourceColor = changes.newsTickerTricolorSource.newValue;
             applyStyleClasses();
+        }
+
+        if (changes.newsTickerExcludedDomains) {
+            excludedDomains = changes.newsTickerExcludedDomains.newValue || [];
+            const isExcluded = excludedDomains.some(domain => window.location.hostname === domain || window.location.hostname.endsWith('.' + domain));
+            if (isExcluded) {
+                removeTicker();
+            } else if (isVisible && feeds.length > 0 && !container) {
+                createTicker().then(() => loadAndRender());
+            }
         }
     });
 
