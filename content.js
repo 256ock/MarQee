@@ -210,6 +210,11 @@
         shadow.appendChild(navButtonsEl);
         document.body.appendChild(container);
 
+        // Add rendering class if tab is currently visible
+        if (!document.hidden) {
+            track.classList.add('nt-rendering');
+        }
+
         // Adjust body padding to not overlap
         updateBodyPadding();
     }
@@ -893,7 +898,35 @@
 
     window.addEventListener('pagehide', saveTickerProgress);
     window.addEventListener('visibilitychange', () => {
-        if (document.hidden) saveTickerProgress();
+        if (!track) return;
+
+        if (document.hidden) {
+            // 1. Save progress
+            saveTickerProgress();
+            
+            // 2. Pause CSS animations (Horizontal mode)
+            track.style.animationPlayState = 'paused';
+            
+            // 3. Clear JS timer (Push modes)
+            if (pushInterval) {
+                clearTimeout(pushInterval);
+                pushInterval = null;
+            }
+            
+            // 4. Remove will-change to save GPU memory
+            track.classList.remove('nt-rendering');
+        } else {
+            // 1. Resume CSS animations
+            track.style.animationPlayState = 'running';
+            
+            // 2. Restart JS timer if in push mode
+            if (scrollMode === 'vertical-push' || scrollMode === 'horizontal-push') {
+                startPushAnimation_ref();
+            }
+            
+            // 3. Re-enable will-change
+            track.classList.add('nt-rendering');
+        }
     });
 
     init();

@@ -137,8 +137,11 @@
     width: max-content;
     padding-left: 100%;
     gap: 2rem;
-    will-change: transform;
     animation: nt-scroll 60s linear infinite;
+}
+
+#nt-track.nt-rendering {
+    will-change: transform;
 }
 
 /* Conditionally applied hover pause */
