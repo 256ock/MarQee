@@ -161,20 +161,11 @@
         // Create Shadow DOM
         shadow = container.attachShadow({ mode: 'open' });
 
-        // Load and inject CSS
-        try {
-            const cssUrl = chrome.runtime.getURL('content.css');
-            const response = await fetch(cssUrl);
-            if (!response.ok) throw new Error(`Failed to load CSS: ${response.status}`);
-            const cssText = await response.text();
-
-            styleElement = document.createElement('style');
-            const extensionId = chrome.runtime.id;
-            styleElement.textContent = cssText.replace(/__EXT_ID__/g, extensionId);
-            shadow.appendChild(styleElement);
-        } catch (e) {
-            console.error('MarQee CSS error:', e);
-        }
+        // Load and inject CSS via <link> for better memory efficiency
+        const cssLink = document.createElement('link');
+        cssLink.rel = 'stylesheet';
+        cssLink.href = chrome.runtime.getURL('content.css');
+        shadow.appendChild(cssLink);
 
         applyHoverPauseClass();
         applyStyleClasses();
@@ -259,20 +250,31 @@
         weightClasses.forEach(c => container.classList.remove(c));
         container.classList.add(`nt-weight-${fontWeight}`);
 
-        // Handle LED overlay
+        // Handle Visual Effects
+        const isLED = (visualEffect === 'led') && !isLight;
+        const isGlass = (visualEffect === 'glass');
+
+        // LED Overlay & Class
         let overlay = shadow.querySelector('.nt-led-overlay');
-        if (ledStyle && !isLight) {
+        if (isLED) {
             container.classList.add('nt-led-enabled');
             if (!overlay) {
                 overlay = document.createElement('div');
                 overlay.className = 'nt-led-overlay';
                 shadow.appendChild(overlay);
             }
-            overlay.style.opacity = ledOpacity;
-            overlay.style.mixBlendMode = ledBlendMode;
+            container.style.setProperty('--nt-led-opacity', ledOpacity);
+            container.style.setProperty('--nt-led-blend-mode', ledBlendMode);
         } else {
             container.classList.remove('nt-led-enabled');
             if (overlay) overlay.remove();
+        }
+
+        // Glass Class
+        if (isGlass) {
+            container.classList.add('nt-glass-enabled');
+        } else {
+            container.classList.remove('nt-glass-enabled');
         }
 
         // Apply font size and height
@@ -280,18 +282,6 @@
         container.style.setProperty('--nt-font-size', `${fontSize}px`);
         container.style.setProperty('--nt-height', `${barHeight}px`);
         container.style.setProperty('--nt-glass-blur', `${glassBlur}px`);
-
-        if (visualEffect === 'glass') {
-            container.classList.add('nt-glass-enabled');
-        } else {
-            container.classList.remove('nt-glass-enabled');
-        }
-
-        if (visualEffect === 'led') {
-            container.classList.add('nt-led-enabled');
-        } else {
-            container.classList.remove('nt-led-enabled');
-        }
 
         // Apply Custom Colors
         container.style.setProperty('--nt-custom-light-color', customColorLight);

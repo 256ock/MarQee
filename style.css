@@ -897,11 +897,15 @@ body {
     color: var(--accent-primary);
     background: var(--bg-secondary);
     border-color: var(--accent-primary);
-    transform: rotate(-30deg);
 }
 
 .reset-btn svg {
     display: block;
+    transition: transform 0.2s ease;
+}
+
+.reset-btn:hover svg {
+    transform: rotate(-30deg);
 }
 
 /* Sub-settings for Nested Options */
@@ -909,8 +913,7 @@ body {
     padding-left: 1.5rem;
     margin-left: 0.75rem;
     margin-bottom: 0.5rem;
-    border-left: 2px solid var(--accent-glow);
-    background: rgba(255, 255, 255, 0.02);
+    background-color: var(--border-color);
     border-radius: 0 0 0 8px;
     display: none;
     /* Controlled by JS */
