@@ -44,82 +44,97 @@
     let navDownBtn = null;
 
     async function init() {
-        const data = await chrome.storage.local.get([
-            'newsTickerFeeds',
-            'newsTickerSpeed',
+        // 1. Initial fetch for early return check
+        const initialData = await chrome.storage.local.get([
             'newsTickerBarVisible',
-            'newsTickerBarPos',
-            'newsTickerHoverPause',
-            'newsTickerColorScheme',
-            'newsTickerLEDStyle',
-            'newsTickerLEDOpacity',
-            'newsTickerLEDBlendMode',
-            'newsTickerFontWeight',
-            'newsTickerArticleSort',
-            'newsTickerArticleGroup',
-            'newsTickerBlinkNew',
-            'newsTickerShiftFixed',
-            'newsTickerScrollMode',
-            'newsTickerVerticalPause',
-            'newsTickerFontSize',
-            'newsTickerAgeFilterEnabled',
-            'newsTickerAgeHours',
-            'newsTickerVisualEffect',
-            'newsTickerGlassmorphismBlur',
-            'newsTickerCustomColorLight',
-            'newsTickerCustomColorDark',
-            'newsTickerCustomColorTricolor',
-            'newsTickerTricolorLink',
-            'newsTickerTricolorTime',
-            'newsTickerTricolorSource',
             'newsTickerExcludedDomains'
         ]);
-        feeds = data.newsTickerFeeds || [];
-        speed = data.newsTickerSpeed || 1.0;
-        isVisible = data.newsTickerBarVisible || false;
-        position = data.newsTickerBarPos || 'top';
-        hoverPause = data.newsTickerHoverPause !== undefined ? data.newsTickerHoverPause : true;
-        colorScheme = data.newsTickerColorScheme || 'system';
-        if (colorScheme === 'default') colorScheme = 'system';
-        ledStyle = data.newsTickerLEDStyle || false;
-        ledOpacity = data.newsTickerLEDOpacity !== undefined ? data.newsTickerLEDOpacity : 0.6;
-        ledBlendMode = data.newsTickerLEDBlendMode || 'overlay';
-        fontWeight = data.newsTickerFontWeight || 'normal';
-        articleSort = data.newsTickerArticleSort || 'chrono';
-        articleGroup = data.newsTickerArticleGroup || 'grouped';
-        blinkNew = data.newsTickerBlinkNew !== undefined ? data.newsTickerBlinkNew : true;
-        shiftFixed = data.newsTickerShiftFixed || false;
-        scrollMode = data.newsTickerScrollMode || 'horizontal';
-        verticalPause = data.newsTickerVerticalPause || 3;
-        fontSize = data.newsTickerFontSize || 14;
-        articleAgeFilterEnabled = data.newsTickerAgeFilterEnabled || false;
-        articleAgeHours = data.newsTickerAgeHours || 24;
-        visualEffect = data.newsTickerVisualEffect || 'none';
-        glassBlur = data.newsTickerGlassmorphismBlur || 12;
-        customColorLight = data.newsTickerCustomColorLight || '#2563eb';
-        customColorDark = data.newsTickerCustomColorDark || '#3b82f6';
-        customColorTricolor = data.newsTickerCustomColorTricolor || '#ff4d4d';
-        tricolorLinkColor = data.newsTickerTricolorLink || '#ffb000';
-        tricolorTimeColor = data.newsTickerTricolorTime || '#ff4d4d';
-        tricolorSourceColor = data.newsTickerTricolorSource || '#00ff41';
-        excludedDomains = data.newsTickerExcludedDomains || [];
-
-
         
-        // Handle case where visualEffect is not yet set but old keys exist
-        if (data.newsTickerVisualEffect === undefined) {
-            if (data.newsTickerLEDStyle) visualEffect = 'led';
-            else if (data.newsTickerGlassmorphism) visualEffect = 'glass';
-        }
+        // Default to true if newsTickerBarVisible is not set
+        isVisible = initialData.newsTickerBarVisible !== false;
+        excludedDomains = initialData.newsTickerExcludedDomains || [];
         
-        const isExcluded = excludedDomains.some(domain => window.location.hostname === domain || window.location.hostname.endsWith('.' + domain));
+        if (!isVisible) return; // Exit early if not visible
 
-        if (isVisible && feeds.length > 0 && !isExcluded) {
-            activeFeedId = feeds[0].id;
+        const isExcluded = excludedDomains.some(domain => 
+            window.location.hostname === domain || 
+            window.location.hostname.endsWith('.' + domain)
+        );
+        if (isExcluded) return; // Exit early if on excluded domain
+
+        // 2. Fetch fontSize immediately for layout shift prevention
+        const fontData = await chrome.storage.local.get('newsTickerFontSize');
+        fontSize = fontData.newsTickerFontSize || 14;
+        updateBodyPadding();
+
+        // 3. Defer non-critical initialization to idle periods
+        const idleCallback = window.requestIdleCallback || ((cb) => setTimeout(cb, 1000));
+        idleCallback(async () => {
+            const data = await chrome.storage.local.get([
+                'newsTickerFeeds',
+                'newsTickerSpeed',
+                'newsTickerBarPos',
+                'newsTickerHoverPause',
+                'newsTickerColorScheme',
+                'newsTickerLEDStyle',
+                'newsTickerLEDOpacity',
+                'newsTickerLEDBlendMode',
+                'newsTickerFontWeight',
+                'newsTickerArticleSort',
+                'newsTickerArticleGroup',
+                'newsTickerBlinkNew',
+                'newsTickerShiftFixed',
+                'newsTickerScrollMode',
+                'newsTickerVerticalPause',
+                'newsTickerAgeFilterEnabled',
+                'newsTickerAgeHours',
+                'newsTickerVisualEffect',
+                'newsTickerGlassmorphismBlur',
+                'newsTickerCustomColorLight',
+                'newsTickerCustomColorDark',
+                'newsTickerCustomColorTricolor',
+                'newsTickerTricolorLink',
+                'newsTickerTricolorTime',
+                'newsTickerTricolorSource'
+            ]);
+
+            feeds = data.newsTickerFeeds || [];
+            speed = data.newsTickerSpeed || 1.0;
+            position = data.newsTickerBarPos || 'top';
+            hoverPause = data.newsTickerHoverPause !== undefined ? data.newsTickerHoverPause : true;
+            colorScheme = data.newsTickerColorScheme || 'system';
+            if (colorScheme === 'default') colorScheme = 'system';
+            ledStyle = data.newsTickerLEDStyle || false;
+            ledOpacity = data.newsTickerLEDOpacity !== undefined ? data.newsTickerLEDOpacity : 0.6;
+            ledBlendMode = data.newsTickerLEDBlendMode || 'overlay';
+            fontWeight = data.newsTickerFontWeight || 'normal';
+            articleSort = data.newsTickerArticleSort || 'chrono';
+            articleGroup = data.newsTickerArticleGroup || 'grouped';
+            blinkNew = data.newsTickerBlinkNew !== undefined ? data.newsTickerBlinkNew : true;
+            shiftFixed = data.newsTickerShiftFixed || false;
+            scrollMode = data.newsTickerScrollMode || 'vertical-push';
+            verticalPause = data.newsTickerVerticalPause || 5;
+            articleAgeFilterEnabled = data.newsTickerAgeFilterEnabled || false;
+            articleAgeHours = data.newsTickerAgeHours || 24;
+            visualEffect = data.newsTickerVisualEffect || 'none';
+            glassBlur = data.newsTickerGlassmorphismBlur || 12;
+            customColorLight = data.newsTickerCustomColorLight || '#2563eb';
+            customColorDark = data.newsTickerCustomColorDark || '#3b82f6';
+            customColorTricolor = data.newsTickerCustomColorTricolor || '#ff4d4d';
+            tricolorLinkColor = data.newsTickerTricolorLink || '#ffb000';
+            tricolorTimeColor = data.newsTickerTricolorTime || '#ff4d4d';
+            tricolorSourceColor = data.newsTickerTricolorSource || '#00ff41';
+
+            // Handle case where visualEffect is not yet set but old keys exist
+            if (data.newsTickerVisualEffect === undefined) {
+                if (data.newsTickerLEDStyle) visualEffect = 'led';
+                else if (data.newsTickerGlassmorphism) visualEffect = 'glass';
+            }
+
+            if (feeds.length > 0) {
+                activeFeedId = feeds[0].id;
+            }
             
-            // Reserve height immediately to prevent layout shift
-            updateBodyPadding();
-
             // Wait for document.body to be available before injecting the ticker
             if (document.body) {
                 await createTicker();
@@ -133,7 +148,7 @@
                 });
                 observer.observe(document.documentElement, { childList: true });
             }
-        }
+        }, { timeout: 1000 });
     }
 
     async function createTicker() {

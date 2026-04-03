@@ -2,6 +2,27 @@ const rssTextCache = new Map(); // url -> { text, timestamp }
 const CACHE_TTL = 3600000; // 1 hour in milliseconds
 const CLEANUP_ALARM_NAME = 'cacheCleanup';
 
+const DEFAULT_FEEDS = [
+    {
+        id: 'feed_1',
+        name: 'BBC World',
+        url: 'http://feeds.bbci.co.uk/news/world/rss.xml',
+        enabled: true
+    },
+    {
+        id: 'feed_2',
+        name: 'TechCrunch',
+        url: 'https://techcrunch.com/feed/',
+        enabled: true
+    },
+    {
+        id: 'feed_3',
+        name: 'NASA',
+        url: 'https://www.nasa.gov/rss/dyn/breaking_news.rss',
+        enabled: true
+    }
+];
+
 // Enable Content Script to access chrome.storage.session
 async function setAccess() {
     try {
@@ -11,8 +32,28 @@ async function setAccess() {
     }
 }
 setAccess();
-chrome.runtime.onInstalled.addListener(() => {
+
+chrome.runtime.onInstalled.addListener(async (details) => {
     setAccess();
+    
+    // Initialize default settings if they don't exist
+    const storage = await chrome.storage.local.get([
+        'newsTickerFeeds',
+        'newsTickerBarVisible',
+        'newsTickerScrollMode',
+        'newsTickerVerticalPause'
+    ]);
+
+    const updates = {};
+    if (!storage.newsTickerFeeds) updates.newsTickerFeeds = DEFAULT_FEEDS;
+    if (storage.newsTickerBarVisible === undefined) updates.newsTickerBarVisible = true;
+    if (!storage.newsTickerScrollMode) updates.newsTickerScrollMode = 'vertical-push';
+    if (storage.newsTickerVerticalPause === undefined) updates.newsTickerVerticalPause = 5;
+
+    if (Object.keys(updates).length > 0) {
+        await chrome.storage.local.set(updates);
+    }
+
     initIconState();
 });
 
@@ -26,7 +67,8 @@ async function initIconState() {
     cleanCache();
 
     const data = await chrome.storage.local.get('newsTickerBarVisible');
-    updateIcon(data.newsTickerBarVisible || false);
+    const isVisible = data.newsTickerBarVisible !== false;
+    updateIcon(isVisible);
 }
 
 async function updateIcon(isTickerVisible) {

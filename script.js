@@ -4,8 +4,24 @@
 
 // 1. Default Feeds & State Management
 const DEFAULT_FEEDS = [
-    { id: 'feed_1', name: 'Main', url: 'https://news.yahoo.co.jp/rss/topics/top-picks.xml', enabled: true },
-    { id: 'feed_2', name: 'World', url: 'https://news.yahoo.co.jp/rss/topics/world.xml', enabled: true }
+    {
+        id: 'feed_1',
+        name: 'BBC World',
+        url: 'http://feeds.bbci.co.uk/news/world/rss.xml',
+        enabled: true
+    },
+    {
+        id: 'feed_2',
+        name: 'TechCrunch',
+        url: 'https://techcrunch.com/feed/',
+        enabled: true
+    },
+    {
+        id: 'feed_3',
+        name: 'NASA',
+        url: 'https://www.nasa.gov/rss/dyn/breaking_news.rss',
+        enabled: true
+    }
 ];
 
 let userFeeds = [];
@@ -22,8 +38,8 @@ let currentFontWeight = 'normal';
 let articleSortOrder = 'chrono'; // 'chrono', 'random'
 let articleGrouping = 'grouped'; // 'grouped', 'mixed'
 let blinkNewEnabled = true; // default: ON
-let scrollMode = 'horizontal'; // 'horizontal', 'vertical-push'
-let verticalPause = 3; // default: 3 seconds
+let scrollMode = 'vertical-push'; // default: 'vertical-push'
+let verticalPause = 5; // default: 5 seconds
 let currentFontSize = 14; // default: 14px
 let articleAgeFilterEnabled = false;
 let articleAgeHours = 24;
@@ -211,8 +227,8 @@ function updateIntervalDisplay(val) {
 
 async function loadScrollSettings() {
     const data = await chrome.storage.local.get(['newsTickerScrollMode', 'newsTickerVerticalPause']);
-    scrollMode = data.newsTickerScrollMode || 'horizontal';
-    verticalPause = data.newsTickerVerticalPause || 3;
+    scrollMode = data.newsTickerScrollMode || 'vertical-push';
+    verticalPause = data.newsTickerVerticalPause || 5;
 
     if (scrollModeSelect) scrollModeSelect.value = scrollMode;
     if (pauseSlider) {
@@ -276,7 +292,7 @@ async function loadStyleSettings() {
         if (oldLED) currentVisualEffect = 'led';
         else if (oldGlass) currentVisualEffect = 'glass';
         else currentVisualEffect = 'none';
-        
+
         // Save migrated value
         saveVisualEffect(currentVisualEffect);
     }
@@ -296,7 +312,7 @@ async function loadStyleSettings() {
         updateLEDOpacityDisplay(ledGridOpacity);
     }
     if (ledBlendModeSelect) ledBlendModeSelect.value = ledBlendMode;
-    
+
     if (colorLightPicker) colorLightPicker.value = customColorLight;
     if (colorDarkPicker) colorDarkPicker.value = customColorDark;
     if (colorTricolorPicker) colorTricolorPicker.value = customColorTricolor;
@@ -315,9 +331,9 @@ async function loadStyleSettings() {
 async function saveVisualEffect(effect) {
     currentVisualEffect = effect;
     await chrome.storage.local.set({ 'newsTickerVisualEffect': effect });
-    
+
     // For backward compatibility / content script consistency
-    await chrome.storage.local.set({ 
+    await chrome.storage.local.set({
         'newsTickerLEDStyle': (effect === 'led'),
         'newsTickerGlassmorphism': (effect === 'glass')
     });
@@ -482,7 +498,7 @@ async function saveExcludedDomains() {
     const text = excludedDomainsTextarea.value.trim();
     excludedDomains = text ? text.split('\n').map(d => d.trim()).filter(d => d !== '') : [];
     await chrome.storage.local.set({ 'newsTickerExcludedDomains': excludedDomains });
-    
+
     // Pulse animation on button to show save success
     if (saveDomainsBtn) {
         const originalText = saveDomainsBtn.textContent;
@@ -507,7 +523,7 @@ async function handleAddCurrentDomain() {
             // Probably not a standard URL (e.g. chrome://)
             return;
         }
-        
+
         const domain = url.hostname;
         if (!domain) return;
 
