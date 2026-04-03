@@ -5,7 +5,8 @@
     "description": "Scroll your favorite RSS feeds as a sleek, customizable news ticker on any website.",
     "permissions": [
         "storage",
-        "activeTab"
+        "activeTab",
+        "alarms"
     ],
     "host_permissions": [
         "*://*/*"

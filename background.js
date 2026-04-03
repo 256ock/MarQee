@@ -1,5 +1,6 @@
-/* background.js */
-const rssTextCache = new Map(); // url -> text (in-memory for speed)
+const rssTextCache = new Map(); // url -> { text, timestamp }
+const CACHE_TTL = 3600000; // 1 hour in milliseconds
+const CLEANUP_ALARM_NAME = 'cacheCleanup';
 
 // Enable Content Script to access chrome.storage.session
 async function setAccess() {
@@ -21,6 +22,9 @@ chrome.runtime.onStartup.addListener(initIconState);
 initIconState();
 
 async function initIconState() {
+    // Release memory on wake-up (clean expired items)
+    cleanCache();
+
     const data = await chrome.storage.local.get('newsTickerBarVisible');
     updateIcon(data.newsTickerBarVisible || false);
 }
@@ -81,14 +85,20 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
                 const withinInterval = (now - lastFetch < intervalMinutes * 60000);
 
-                // Use in-memory cache if available and within interval
+                // Use in-memory cache if available, within fetch interval, and within TTL
                 if (withinInterval && rssTextCache.has(url)) {
-                    sendResponse({
-                        success: true,
-                        data: rssTextCache.get(url),
-                        isUpdated: false
-                    });
-                    return;
+                    const cached = rssTextCache.get(url);
+                    if (now - cached.timestamp < CACHE_TTL) {
+                        sendResponse({
+                            success: true,
+                            data: cached.text,
+                            isUpdated: false
+                        });
+                        return;
+                    } else {
+                        // TTL expired, remove it and proceed to fetch
+                        rssTextCache.delete(url);
+                    }
                 }
 
                 // Otherwise fetch new data
@@ -96,7 +106,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 const text = await response.text();
 
-                rssTextCache.set(url, text);
+                rssTextCache.set(url, { text, timestamp: now });
 
                 // If it was within interval but memory cache was missing (SW restart), 
                 // we don't treat it as a "reset" update.
@@ -119,3 +129,36 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
 });
 
+/**
+ * Purges expired entries from the cache to free up memory.
+ * @param {boolean} force - If true, clears the entire cache.
+ */
+function cleanCache(force = false) {
+    if (force) {
+        rssTextCache.clear();
+        console.log('Cache cleared (forced).');
+        return;
+    }
+
+    const now = Date.now();
+    let count = 0;
+    for (const [url, entry] of rssTextCache.entries()) {
+        if (now - entry.timestamp > CACHE_TTL) {
+            rssTextCache.delete(url);
+            count++;
+        }
+    }
+    if (count > 0) {
+        console.log(`Cache cleaned: ${count} expired entries removed.`);
+    }
+}
+
+// Set up periodic cleanup alarm
+if (chrome.alarms) {
+    chrome.alarms.create(CLEANUP_ALARM_NAME, { periodInMinutes: 30 });
+    chrome.alarms.onAlarm.addListener((alarm) => {
+        if (alarm.name === CLEANUP_ALARM_NAME) {
+            cleanCache();
+        }
+    });
+}
