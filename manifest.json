@@ -1,8 +1,8 @@
 {
     "manifest_version": 3,
-    "name": "Postglider",
+    "name": "MarQee - RSS Ticker",
     "version": "1.0.0",
-    "description": "Premium RSS Postglider",
+    "description": "Scroll your favorite RSS feeds as a sleek, customizable news ticker on any website.",
     "permissions": [
         "storage",
         "activeTab"
@@ -15,7 +15,7 @@
     },
     "action": {
         "default_popup": "index.html",
-        "default_title": "Postglider"
+        "default_title": "MarQee"
     },
     "content_scripts": [
         {

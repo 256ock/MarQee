@@ -19,6 +19,8 @@
     --danger: #ef4444;
 
     --logo-gradient: linear-gradient(135deg, #fff 0%, #a1a1aa 100%);
+    --header-brand-color: #ffffff;
+    --header-icon-border: #ffffff;
 
     /* Element Borders / Glassmorphism */
     --border-color: rgba(255, 255, 255, 0.08);
@@ -53,6 +55,8 @@
     --accent-glow: rgba(37, 99, 235, 0.2);
 
     --logo-gradient: linear-gradient(135deg, #0f172a 0%, #475569 100%);
+    --header-brand-color: #0f172a;
+    --header-icon-border: #0f172a;
 
     --border-color: rgba(0, 0, 0, 0.08);
     --glass-bg: rgba(255, 255, 255, 0.8);
@@ -124,10 +128,38 @@ body {
     flex-shrink: 0;
 }
 
+.header-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.header-icon {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    border: 1px solid var(--header-icon-border);
+    border-radius: 8px;
+    background: #fff;
+    /* Ensure white background under border if icon is transparent */
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+}
+
 .modal-header h2 {
     font-size: 1.25rem;
     font-weight: 700;
     margin: 0;
+    line-height: 1;
+}
+
+.brand-name {
+    color: var(--header-brand-color);
+}
+
+.settings-text {
+    color: var(--text-tertiary);
+    font-weight: 500;
+    margin-left: 0.25rem;
 }
 
 /* ==========================================================================
@@ -880,7 +912,8 @@ body {
     border-left: 2px solid var(--accent-glow);
     background: rgba(255, 255, 255, 0.02);
     border-radius: 0 0 0 8px;
-    display: none; /* Controlled by JS */
+    display: none;
+    /* Controlled by JS */
 }
 
 .setting-row.sub-row {

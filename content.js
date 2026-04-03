@@ -158,7 +158,7 @@
             styleElement.textContent = cssText.replace(/__EXT_ID__/g, extensionId);
             shadow.appendChild(styleElement);
         } catch (e) {
-            console.error('Postglider CSS error:', e);
+            console.error('MarQee CSS error:', e);
         }
 
         applyHoverPauseClass();
@@ -596,7 +596,7 @@
             rssIsUpdated = false;
 
         } catch (e) {
-            console.error('Postglider error:', e);
+            console.error('MarQee error:', e);
         }
     }
 
