@@ -1,4 +1,4 @@
-const rssTextCache = new Map(); // url -> { text, timestamp }
+const rssDataCache = new Map(); // url -> { items, timestamp }
 const CACHE_TTL = 3600000; // 1 hour in milliseconds
 const CLEANUP_ALARM_NAME = 'cacheCleanup';
 
@@ -98,7 +98,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
         }
         if (changes.newsTickerFeeds) {
             // Clear in-memory cache
-            rssTextCache.clear();
+            rssDataCache.clear();
             
             // Clear session storage fetch timestamps
             chrome.storage.session.get(null).then(allData => {
@@ -128,18 +128,18 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 const withinInterval = (now - lastFetch < intervalMinutes * 60000);
 
                 // Use in-memory cache if available, within fetch interval, and within TTL
-                if (withinInterval && rssTextCache.has(url)) {
-                    const cached = rssTextCache.get(url);
+                if (withinInterval && rssDataCache.has(url)) {
+                    const cached = rssDataCache.get(url);
                     if (now - cached.timestamp < CACHE_TTL) {
                         sendResponse({
                             success: true,
-                            data: cached.text,
+                            data: cached.items,
                             isUpdated: false
                         });
                         return;
                     } else {
                         // TTL expired, remove it and proceed to fetch
-                        rssTextCache.delete(url);
+                        rssDataCache.delete(url);
                     }
                 }
 
@@ -147,8 +147,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 const response = await fetch(url);
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 const text = await response.text();
+                
+                const items = parseRSS(text);
 
-                rssTextCache.set(url, { text, timestamp: now });
+                rssDataCache.set(url, { items, timestamp: now });
 
                 // If it was within interval but memory cache was missing (SW restart), 
                 // we don't treat it as a "reset" update.
@@ -160,7 +162,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
                 sendResponse({
                     success: true,
-                    data: text,
+                    data: items,
                     isUpdated: shouldReset
                 });
             } catch (error) {
@@ -177,22 +179,81 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
  */
 function cleanCache(force = false) {
     if (force) {
-        rssTextCache.clear();
+        rssDataCache.clear();
         console.log('Cache cleared (forced).');
         return;
     }
 
     const now = Date.now();
     let count = 0;
-    for (const [url, entry] of rssTextCache.entries()) {
+    for (const [url, entry] of rssDataCache.entries()) {
         if (now - entry.timestamp > CACHE_TTL) {
-            rssTextCache.delete(url);
+            rssDataCache.delete(url);
             count++;
         }
     }
     if (count > 0) {
         console.log(`Cache cleaned: ${count} expired entries removed.`);
     }
+}
+
+function decodeXMLEntities(text) {
+    if (!text) return "";
+    return text.replace(/&amp;/g, '&')
+               .replace(/&lt;/g, '<')
+               .replace(/&gt;/g, '>')
+               .replace(/&quot;/g, '"')
+               .replace(/&apos;/g, "'")
+               .replace(/&#(\d+);/g, (match, dec) => String.fromCharCode(dec))
+               .replace(/&#x([0-9a-f]+);/gi, (match, hex) => String.fromCharCode(parseInt(hex, 16)));
+}
+
+function parseRSS(xmlString) {
+    const results = [];
+    const itemRegex = /<item\b[^>]*>([\s\S]*?)<\/item>/gi;
+    const titleRegex = /<title\b[^>]*>([\s\S]*?)<\/title>/i;
+    const linkRegex = /<link\b[^>]*>([\s\S]*?)<\/link>/i;
+    const pubDateRegex = /<pubDate\b[^>]*>([\s\S]*?)<\/pubDate>/i;
+
+    function extractContent(str, regex) {
+        const match = regex.exec(str);
+        if (!match) return "";
+        let content = match[1].trim();
+        if (content.startsWith("<![CDATA[") && content.endsWith("]]>")) {
+            content = content.substring(9, content.length - 3);
+        }
+        return decodeXMLEntities(content.trim());
+    }
+
+    let match;
+    let count = 0;
+    while ((match = itemRegex.exec(xmlString)) !== null && count < 30) {
+        const itemStr = match[1];
+        
+        let title = extractContent(itemStr, titleRegex);
+        let linkStr = extractContent(itemStr, linkRegex);
+        let pubDateStr = extractContent(itemStr, pubDateRegex);
+        
+        let link = linkStr || "#";
+        if (link !== "#" && !link.startsWith("http://") && !link.startsWith("https://")) {
+            link = "#";
+        }
+        
+        let timeStr = "";
+        let pubDateValue = 0;
+        
+        if (pubDateStr) {
+            const d = new Date(pubDateStr);
+            if (!isNaN(d.getTime())) {
+                timeStr = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+                pubDateValue = d.getTime();
+            }
+        }
+        
+        results.push({ title, link, timeStr, pubDateValue, description: "" });
+        count++;
+    }
+    return results;
 }
 
 // Set up periodic cleanup alarm

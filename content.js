@@ -161,11 +161,22 @@
         // Create Shadow DOM
         shadow = container.attachShadow({ mode: 'open' });
 
-        // Load and inject CSS via <link> for better memory efficiency
-        const cssLink = document.createElement('link');
-        cssLink.rel = 'stylesheet';
-        cssLink.href = chrome.runtime.getURL('content.css');
-        shadow.appendChild(cssLink);
+        try {
+            const response = await fetch(chrome.runtime.getURL('content.css'));
+            let cssText = await response.text();
+            
+            // Fix relative URLs in CSS (like led-tile.png) to be absolute extension URLs
+            // This is required because adoptedStyleSheets resolve URLs relative to the document, not the extension
+            cssText = cssText.replace(/url\(['"]?([^'")]+\.(?:png|jpg|jpeg|gif|svg))['"]?\)/g, (match, path) => {
+                return `url("${chrome.runtime.getURL(path)}")`;
+            });
+
+            const sheet = new CSSStyleSheet();
+            sheet.replaceSync(cssText);
+            shadow.adoptedStyleSheets = [sheet];
+        } catch (e) {
+            console.error('MarQee CSS load error:', e);
+        }
 
         applyHoverPauseClass();
         applyStyleClasses();
@@ -305,7 +316,7 @@
     function shiftFixedElements() {
         if (!shiftFixed || position !== 'top') return;
 
-        const elements = document.querySelectorAll('*');
+        const elements = document.querySelectorAll('body > *, header, nav, .fixed, .sticky, [class*="header"], [id*="header"]');
         elements.forEach(el => {
             if (el === container || el === document.body || el === document.documentElement) return;
 
@@ -382,7 +393,7 @@
                         if (response && response.success) {
                             if (response.isUpdated) rssIsUpdated = true;
                             return {
-                                items: parseRSS(response.data),
+                                items: response.data || [],
                                 feedName: feed.name
                             };
                         }
@@ -610,30 +621,7 @@
         }
     }
 
-    function parseRSS(xmlString) {
-        const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(xmlString, "text/xml");
-        const items = xmlDoc.querySelectorAll("item");
-        const results = [];
-        for (let i = 0; i < Math.min(items.length, 30); i++) {
-            const item = items[i];
-            const title = item.querySelector("title")?.textContent || "";
-            let link = item.querySelector("link")?.textContent || "#";
-            if (link !== "#" && !link.startsWith("http://") && !link.startsWith("https://")) {
-                link = "#";
-            }
-            const pubDate = item.querySelector("pubDate")?.textContent;
-            let timeStr = "";
-            if (pubDate) {
-                const d = new Date(pubDate);
-                timeStr = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-                results.push({ title, link, timeStr, pubDateValue: d.getTime(), description: "" });
-            } else {
-                results.push({ title, link, timeStr: "", pubDateValue: 0, description: "" });
-            }
-        }
-        return results;
-    }
+
 
     function updateNavButtons() {
         if (!navUpBtn || !navDownBtn) return;
