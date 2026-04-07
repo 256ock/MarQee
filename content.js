@@ -23,6 +23,7 @@
     let glassmorphismEnabled = false;
     let glassBlur = 12;
     let excludedDomains = [];
+    let domainFilterMode = 'exclude'; // 'exclude' or 'include'
     let customColorLight = '#2563eb';
     let customColorDark = '#3b82f6';
     let customColorTricolor = '#ff4d4d';
@@ -47,20 +48,30 @@
         // 1. Initial fetch for early return check
         const initialData = await chrome.storage.local.get([
             'newsTickerBarVisible',
-            'newsTickerExcludedDomains'
+            'newsTickerExcludedDomains',
+            'newsTickerDomainFilterMode'
         ]);
         
         // Default to true if newsTickerBarVisible is not set
         isVisible = initialData.newsTickerBarVisible !== false;
         excludedDomains = initialData.newsTickerExcludedDomains || [];
+        domainFilterMode = initialData.newsTickerDomainFilterMode || 'exclude';
         
         if (!isVisible) return; // Exit early if not visible
 
-        const isExcluded = excludedDomains.some(domain => 
-            window.location.hostname === domain || 
-            window.location.hostname.endsWith('.' + domain)
+        const hostname = window.location.hostname;
+        const matchesDomain = excludedDomains.some(domain => 
+            hostname === domain || 
+            hostname.endsWith('.' + domain)
         );
-        if (isExcluded) return; // Exit early if on excluded domain
+
+        if (domainFilterMode === 'include') {
+            // Include mode: only show on listed domains
+            if (excludedDomains.length > 0 && !matchesDomain) return;
+        } else {
+            // Exclude mode: hide on listed domains
+            if (matchesDomain) return;
+        }
 
         // 2. Fetch fontSize immediately for layout shift prevention
         const fontData = await chrome.storage.local.get('newsTickerFontSize');
@@ -821,10 +832,24 @@
             applyStyleClasses();
         }
 
-        if (changes.newsTickerExcludedDomains) {
-            excludedDomains = changes.newsTickerExcludedDomains.newValue || [];
-            const isExcluded = excludedDomains.some(domain => window.location.hostname === domain || window.location.hostname.endsWith('.' + domain));
-            if (isExcluded) {
+        if (changes.newsTickerExcludedDomains || changes.newsTickerDomainFilterMode) {
+            if (changes.newsTickerExcludedDomains) {
+                excludedDomains = changes.newsTickerExcludedDomains.newValue || [];
+            }
+            if (changes.newsTickerDomainFilterMode) {
+                domainFilterMode = changes.newsTickerDomainFilterMode.newValue || 'exclude';
+            }
+            const hostname = window.location.hostname;
+            const matchesDomain = excludedDomains.some(domain => hostname === domain || hostname.endsWith('.' + domain));
+            
+            let shouldHide = false;
+            if (domainFilterMode === 'include') {
+                shouldHide = excludedDomains.length > 0 && !matchesDomain;
+            } else {
+                shouldHide = matchesDomain;
+            }
+
+            if (shouldHide) {
                 removeTicker();
             } else if (isVisible && feeds.length > 0 && !container) {
                 createTicker().then(() => loadAndRender());

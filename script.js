@@ -44,6 +44,7 @@ let currentFontSize = 14; // default: 14px
 let articleAgeFilterEnabled = false;
 let articleAgeHours = 24;
 let excludedDomains = [];
+let domainFilterMode = 'exclude'; // 'exclude' or 'include'
 
 const DEFAULT_COLOR_LIGHT = '#2563eb';
 const DEFAULT_COLOR_DARK = '#3b82f6';
@@ -106,6 +107,8 @@ const articleAgeRow = document.getElementById('article-age-row');
 const excludedDomainsTextarea = document.getElementById('excluded-domains-textarea');
 const saveDomainsBtn = document.getElementById('save-domains-btn');
 const addCurrentDomainBtn = document.getElementById('add-current-domain-btn');
+const domainFilterModeOptions = document.getElementById('domain-filter-mode-options');
+const domainFilterDesc = document.getElementById('domain-filter-desc');
 
 const colorLightPicker = document.getElementById('color-light-picker');
 const colorDarkPicker = document.getElementById('color-dark-picker');
@@ -474,13 +477,14 @@ function updateLEDSettingVisibility() {
 }
 
 async function loadArticleSettings() {
-    const data = await chrome.storage.local.get(['newsTickerArticleSort', 'newsTickerArticleGroup', 'newsTickerBlinkNew', 'newsTickerAgeFilterEnabled', 'newsTickerAgeHours', 'newsTickerExcludedDomains']);
+    const data = await chrome.storage.local.get(['newsTickerArticleSort', 'newsTickerArticleGroup', 'newsTickerBlinkNew', 'newsTickerAgeFilterEnabled', 'newsTickerAgeHours', 'newsTickerExcludedDomains', 'newsTickerDomainFilterMode']);
     articleSortOrder = data.newsTickerArticleSort || 'chrono';
     articleGrouping = data.newsTickerArticleGroup || 'grouped';
     blinkNewEnabled = data.newsTickerBlinkNew !== undefined ? data.newsTickerBlinkNew : true;
     articleAgeFilterEnabled = data.newsTickerAgeFilterEnabled || false;
     articleAgeHours = data.newsTickerAgeHours || 24;
     excludedDomains = data.newsTickerExcludedDomains || [];
+    domainFilterMode = data.newsTickerDomainFilterMode || 'exclude';
 
     if (articleSortSelect) articleSortSelect.value = articleSortOrder;
     if (articleGroupSelect) articleGroupSelect.value = articleGrouping;
@@ -492,12 +496,16 @@ async function loadArticleSettings() {
     }
     updateAgeFilterVisibility();
     updateExcludedDomainsUI();
+    updateDomainFilterModeUI();
 }
 
 async function saveExcludedDomains() {
     const text = excludedDomainsTextarea.value.trim();
     excludedDomains = text ? text.split('\n').map(d => d.trim()).filter(d => d !== '') : [];
-    await chrome.storage.local.set({ 'newsTickerExcludedDomains': excludedDomains });
+    await chrome.storage.local.set({ 
+        'newsTickerExcludedDomains': excludedDomains,
+        'newsTickerDomainFilterMode': domainFilterMode
+    });
 
     // Pulse animation on button to show save success
     if (saveDomainsBtn) {
@@ -508,6 +516,28 @@ async function saveExcludedDomains() {
             saveDomainsBtn.textContent = originalText;
             saveDomainsBtn.style.background = '';
         }, 2000);
+    }
+}
+
+async function saveDomainFilterMode(mode) {
+    domainFilterMode = mode;
+    await chrome.storage.local.set({ 'newsTickerDomainFilterMode': mode });
+    updateDomainFilterModeUI();
+}
+
+function updateDomainFilterModeUI() {
+    if (domainFilterModeOptions) {
+        domainFilterModeOptions.querySelectorAll('.pos-btn').forEach(btn => {
+            if (btn.dataset.mode === domainFilterMode) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
+    }
+    if (domainFilterDesc) {
+        if (domainFilterMode === 'include') {
+            domainFilterDesc.textContent = 'The ticker will ONLY be shown on these domains (one per line).';
+        } else {
+            domainFilterDesc.textContent = 'The ticker will be disabled on these domains (one per line).';
+        }
     }
 }
 
@@ -564,6 +594,7 @@ function updateExcludedDomainsUI() {
     if (excludedDomainsTextarea) {
         excludedDomainsTextarea.value = excludedDomains.join('\n');
     }
+    updateDomainFilterModeUI();
 }
 
 async function saveBlinkNew(enabled) {
@@ -906,6 +937,14 @@ async function init() {
 
     if (addCurrentDomainBtn) {
         addCurrentDomainBtn.addEventListener('click', handleAddCurrentDomain);
+    }
+
+    if (domainFilterModeOptions) {
+        domainFilterModeOptions.addEventListener('click', (e) => {
+            const btn = e.target.closest('.pos-btn');
+            if (!btn || !btn.dataset.mode) return;
+            saveDomainFilterMode(btn.dataset.mode);
+        });
     }
 
     if (colorSchemeSelect) {

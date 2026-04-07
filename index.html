@@ -133,11 +133,21 @@
                     </div>
                 </div>
 
-                <!-- Excluded Domains -->
+                <!-- Domain Filter -->
                 <div class="settings-section">
-                    <h3>Excluded Domains</h3>
+                    <h3>Domain Filter</h3>
+                    <div class="setting-row">
+                        <div class="setting-label">
+                            <span class="setting-title">Filter Mode</span>
+                            <span class="setting-desc">Choose how the domain list is applied</span>
+                        </div>
+                        <div class="position-toggle" id="domain-filter-mode-options">
+                            <button class="pos-btn active" data-mode="exclude">Exclude</button>
+                            <button class="pos-btn" data-mode="include">Include Only</button>
+                        </div>
+                    </div>
                     <div class="setting-row" style="flex-direction: column; align-items: flex-start; gap: 0.75rem;">
-                        <div class="setting-desc" style="margin-bottom: 0.25rem;">
+                        <div id="domain-filter-desc" class="setting-desc" style="margin-bottom: 0.25rem;">
                             The ticker will be disabled on these domains (one per line).
                         </div>
                         <textarea id="excluded-domains-textarea" class="custom-textarea" rows="4" placeholder="www.google.com&#10;example.com" style="width: 100%; box-sizing: border-box;"></textarea>
