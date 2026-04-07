@@ -11,7 +11,7 @@
     /* Default Dark Theme Variables */
     --nt-bg: rgba(10, 10, 12, 0.95);
     --nt-color: #ffffff;
-    --nt-border: rgba(255, 255, 255, 0.1);
+    --nt-border: rgba(255, 255, 255, 0.12);
     --nt-link: #ffffff;
     --nt-time: var(--nt-custom-dark-color, #3b82f6);
     --nt-summary: #a1a1aa;
@@ -27,7 +27,7 @@
     color: var(--nt-color);
     font-family: 'Inter', 'Noto Sans JP', sans-serif;
     font-size: var(--nt-font-size, 14px);
-    box-shadow: inset 0 -6px 12px -12px var(--nt-color);
+    box-shadow: inset 0 -6px 12px -12px rgba(255, 255, 255, 0.2);
 }
 
 /* Light Theme Variables */
@@ -47,7 +47,7 @@
     bottom: 0;
     border-bottom: none;
     border-top: 1px solid var(--nt-border);
-    box-shadow: inset 0 6px 12px -12px var(--nt-color);
+    box-shadow: inset 0 6px 12px -12px rgba(255, 255, 255, 0.2);
 }
 
 :host(.nt-top) {
@@ -61,7 +61,7 @@
     --nt-color: #00f2ff;
     --nt-link: #00f2ff;
     --nt-time: #00f2ff;
-    --nt-border: rgba(0, 242, 255, 0.3);
+
 }
 
 :host(.nt-scheme-amber) {
@@ -69,7 +69,7 @@
     --nt-color: #ffb000;
     --nt-link: #ffb000;
     --nt-time: #ffb000;
-    --nt-border: rgba(255, 176, 0, 0.3);
+
 }
 
 :host(.nt-scheme-emerald) {
@@ -77,7 +77,7 @@
     --nt-color: #00ff41;
     --nt-link: #00ff41;
     --nt-time: #00ff41;
-    --nt-border: rgba(0, 255, 65, 0.3);
+
 }
 
 :host(.nt-scheme-tricolor) {
@@ -86,7 +86,7 @@
     --nt-link: var(--nt-tricolor-link-color, #ffb000);
     --nt-time: var(--nt-tricolor-time-color, #ff4d4d);
     --nt-source: var(--nt-tricolor-source-color, #00ff41);
-    --nt-border: rgba(255, 176, 0, 0.2);
+
 }
 
 
