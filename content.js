@@ -22,6 +22,7 @@
     let articleAgeHours = 24;
     let glassmorphismEnabled = false;
     let glassBlur = 12;
+    let glassBrightness = 1.0;
     let excludedDomains = [];
     let domainFilterMode = 'exclude'; // 'exclude' or 'include'
     let customColorLight = '#2563eb';
@@ -101,6 +102,7 @@
                 'newsTickerAgeHours',
                 'newsTickerVisualEffect',
                 'newsTickerGlassmorphismBlur',
+                'newsTickerGlassBrightness',
                 'newsTickerCustomColorLight',
                 'newsTickerCustomColorDark',
                 'newsTickerCustomColorTricolor',
@@ -129,6 +131,7 @@
             articleAgeHours = data.newsTickerAgeHours || 24;
             visualEffect = data.newsTickerVisualEffect || 'none';
             glassBlur = data.newsTickerGlassmorphismBlur || 12;
+            glassBrightness = data.newsTickerGlassBrightness !== undefined ? data.newsTickerGlassBrightness : 1.0;
             customColorLight = data.newsTickerCustomColorLight || '#2563eb';
             customColorDark = data.newsTickerCustomColorDark || '#3b82f6';
             customColorTricolor = data.newsTickerCustomColorTricolor || '#ff4d4d';
@@ -304,6 +307,7 @@
         container.style.setProperty('--nt-font-size', `${fontSize}px`);
         container.style.setProperty('--nt-height', `${barHeight}px`);
         container.style.setProperty('--nt-glass-blur', `${glassBlur}px`);
+        container.style.setProperty('--nt-glass-brightness', glassBrightness);
 
         // Apply Custom Colors
         container.style.setProperty('--nt-custom-light-color', customColorLight);
@@ -805,6 +809,10 @@
         }
         if (changes.newsTickerGlassmorphismBlur) {
             glassBlur = changes.newsTickerGlassmorphismBlur.newValue;
+            applyStyleClasses();
+        }
+        if (changes.newsTickerGlassBrightness) {
+            glassBrightness = changes.newsTickerGlassBrightness.newValue;
             applyStyleClasses();
         }
         if (changes.newsTickerCustomColorLight) {

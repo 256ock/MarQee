@@ -32,6 +32,7 @@ let fetchInterval = 15; // default: 15 minutes
 let currentColorScheme = 'system';
 let currentVisualEffect = 'none'; // 'none', 'glass', 'led'
 let currentGlassBlur = 12; // default: 12px
+let currentGlassBrightness = 1.0; // default: 1.0
 let ledGridOpacity = 0.6;
 let ledBlendMode = 'overlay';
 let currentFontWeight = 'normal';
@@ -89,6 +90,9 @@ const ledBlendModeRow = document.getElementById('led-blend-mode-row');
 const glassBlurSlider = document.getElementById('glass-blur-slider');
 const glassBlurValueDisplay = document.getElementById('glass-blur-value');
 const glassBlurRow = document.getElementById('glass-blur-row');
+const glassBrightnessSlider = document.getElementById('glass-brightness-slider');
+const glassBrightnessValueDisplay = document.getElementById('glass-brightness-value');
+const glassBrightnessRow = document.getElementById('glass-brightness-row');
 const fontWeightSelect = document.getElementById('font-weight-select');
 const articleSortSelect = document.getElementById('article-sort-select');
 const articleGroupSelect = document.getElementById('article-group-select');
@@ -265,7 +269,7 @@ function updateScrollControlVisibility() {
 }
 
 async function loadStyleSettings() {
-    const data = await chrome.storage.local.get(['newsTickerColorScheme', 'newsTickerVisualEffect', 'newsTickerGlassmorphismBlur', 'newsTickerLEDStyle', 'newsTickerLEDOpacity', 'newsTickerLEDBlendMode', 'newsTickerFontWeight', 'newsTickerFontSize', 'newsTickerCustomColorLight', 'newsTickerCustomColorDark', 'newsTickerCustomColorTricolor', 'newsTickerTricolorLink', 'newsTickerTricolorTime', 'newsTickerTricolorSource']);
+    const data = await chrome.storage.local.get(['newsTickerColorScheme', 'newsTickerVisualEffect', 'newsTickerGlassmorphismBlur', 'newsTickerGlassBrightness', 'newsTickerLEDStyle', 'newsTickerLEDOpacity', 'newsTickerLEDBlendMode', 'newsTickerFontWeight', 'newsTickerFontSize', 'newsTickerCustomColorLight', 'newsTickerCustomColorDark', 'newsTickerCustomColorTricolor', 'newsTickerTricolorLink', 'newsTickerTricolorTime', 'newsTickerTricolorSource']);
     currentColorScheme = data.newsTickerColorScheme || 'system';
 
     customColorLight = data.newsTickerCustomColorLight || DEFAULT_COLOR_LIGHT;
@@ -285,6 +289,7 @@ async function loadStyleSettings() {
     currentFontWeight = data.newsTickerFontWeight || 'normal';
     currentFontSize = data.newsTickerFontSize || 14;
     currentGlassBlur = data.newsTickerGlassmorphismBlur || 12;
+    currentGlassBrightness = data.newsTickerGlassBrightness !== undefined ? data.newsTickerGlassBrightness : 1.0;
 
     // Load new visual effect key, or migrate from old keys
     if (data.newsTickerVisualEffect) {
@@ -309,6 +314,10 @@ async function loadStyleSettings() {
     if (glassBlurSlider) {
         glassBlurSlider.value = currentGlassBlur;
         updateGlassBlurDisplay(currentGlassBlur);
+    }
+    if (glassBrightnessSlider) {
+        glassBrightnessSlider.value = currentGlassBrightness;
+        updateGlassBrightnessDisplay(currentGlassBrightness);
     }
     if (ledOpacitySlider) {
         ledOpacitySlider.value = ledGridOpacity;
@@ -370,6 +379,18 @@ async function saveGlassmorphismBlur(val) {
 function updateGlassBlurDisplay(val) {
     if (glassBlurValueDisplay) {
         glassBlurValueDisplay.textContent = `${val}px`;
+    }
+}
+
+async function saveGlassBrightness(val) {
+    currentGlassBrightness = parseFloat(val);
+    await chrome.storage.local.set({ 'newsTickerGlassBrightness': currentGlassBrightness });
+    updateGlassBrightnessDisplay(currentGlassBrightness);
+}
+
+function updateGlassBrightnessDisplay(val) {
+    if (glassBrightnessValueDisplay) {
+        glassBrightnessValueDisplay.textContent = parseFloat(val).toFixed(1);
     }
 }
 
@@ -463,6 +484,10 @@ function updateLEDSettingVisibility() {
     // Glass Blur visibility
     if (glassBlurRow) {
         glassBlurRow.style.display = (currentVisualEffect === 'glass') ? 'flex' : 'none';
+    }
+    // Glass Brightness visibility
+    if (glassBrightnessRow) {
+        glassBrightnessRow.style.display = (currentVisualEffect === 'glass') ? 'flex' : 'none';
     }
 
     if (visualEffectOptions) {
@@ -965,6 +990,12 @@ async function init() {
     if (glassBlurSlider) {
         glassBlurSlider.addEventListener('input', (e) => {
             saveGlassmorphismBlur(e.target.value);
+        });
+    }
+
+    if (glassBrightnessSlider) {
+        glassBrightnessSlider.addEventListener('input', (e) => {
+            saveGlassBrightness(e.target.value);
         });
     }
 

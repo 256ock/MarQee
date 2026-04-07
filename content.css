@@ -100,13 +100,15 @@
 }
 
 :host(.nt-glass-enabled) {
-    backdrop-filter: blur(var(--nt-glass-blur, 12px)) saturate(180%) !important;
-    -webkit-backdrop-filter: blur(var(--nt-glass-blur, 12px)) saturate(180%) !important;
+    backdrop-filter: blur(var(--nt-glass-blur, 12px)) saturate(180%) brightness(var(--nt-glass-brightness, 1.0)) !important;
+    -webkit-backdrop-filter: blur(var(--nt-glass-blur, 12px)) saturate(180%) brightness(var(--nt-glass-brightness, 1.0)) !important;
     --nt-bg: rgba(5, 5, 8, 0.85) !important;
 }
 
 :host(.nt-glass-enabled.theme-light) {
     --nt-bg: rgba(255, 255, 255, 0.4) !important;
+    backdrop-filter: blur(var(--nt-glass-blur, 12px)) saturate(180%) brightness(var(--nt-glass-brightness, 1.0)) !important;
+    -webkit-backdrop-filter: blur(var(--nt-glass-blur, 12px)) saturate(180%) brightness(var(--nt-glass-brightness, 1.0)) !important;
 }
 
 /* LED Style */
