@@ -43,30 +43,30 @@
 }
 
 [data-theme="light"] {
-    --bg-primary: #f8fafc;
+    --bg-primary: #f0f4f8;
     --bg-secondary: #ffffff;
-    --bg-tertiary: #f1f5f9;
+    --bg-tertiary: #e8edf3;
 
-    --text-primary: #0f172a;
+    --text-primary: #1e293b;
     --text-secondary: #475569;
-    --text-tertiary: #94a3b8;
+    --text-tertiary: #64748b;
 
     --accent-primary: #2563eb;
-    --accent-glow: rgba(37, 99, 235, 0.2);
+    --accent-glow: rgba(37, 99, 235, 0.18);
 
-    --logo-gradient: linear-gradient(135deg, #0f172a 0%, #475569 100%);
-    --header-brand-color: #0f172a;
-    --header-icon-border: #0f172a;
+    --logo-gradient: linear-gradient(135deg, #334155 0%, #64748b 100%);
+    --header-brand-color: #1e293b;
+    --header-icon-border: #cbd5e1;
 
-    --border-color: rgba(0, 0, 0, 0.08);
-    --glass-bg: rgba(255, 255, 255, 0.8);
-    --glass-border: rgba(0, 0, 0, 0.05);
+    --border-color: rgba(0, 0, 0, 0.10);
+    --glass-bg: rgba(255, 255, 255, 0.85);
+    --glass-border: rgba(0, 0, 0, 0.06);
 
-    --box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
-    --modal-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+    --box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+    --modal-shadow: 0 12px 40px rgba(0, 0, 0, 0.10);
 
-    --bg-gradient-1: rgba(37, 99, 235, 0.05);
-    --bg-gradient-2: rgba(124, 58, 237, 0.05);
+    --bg-gradient-1: rgba(37, 99, 235, 0.04);
+    --bg-gradient-2: rgba(124, 58, 237, 0.04);
 }
 
 /* ==========================================================================
@@ -142,7 +142,6 @@ body {
     border-radius: 8px;
     background: #fff;
     /* Ensure white background under border if icon is transparent */
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
 }
 
 .modal-header h2 {
@@ -199,6 +198,10 @@ body {
 .tab-btn:hover {
     color: var(--text-primary);
     background: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="light"] .tab-btn:hover {
+    background: rgba(0, 0, 0, 0.04);
 }
 
 .tab-btn.active {
@@ -346,6 +349,11 @@ body {
     overflow: hidden;
 }
 
+[data-theme="light"] .settings-section {
+    background: rgba(255, 255, 255, 0.65);
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.04);
+}
+
 .settings-section h3 {
     font-size: 0.95rem;
     font-weight: 700;
@@ -452,6 +460,10 @@ body {
     background: var(--bg-secondary);
     color: var(--text-primary);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="light"] .pos-btn.active {
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.10);
 }
 
 .feed-form-container {
@@ -656,6 +668,11 @@ body {
     background: rgba(255, 255, 255, 0.05);
 }
 
+[data-theme="light"] .delete-btn:hover {
+    color: #dc2626;
+    background: rgba(220, 38, 38, 0.06);
+}
+
 .edit-btn {
     appearance: none;
     background: transparent;
@@ -767,7 +784,7 @@ body {
 }
 
 [data-theme="light"] .theme-btn:hover {
-    color: #0f172a;
+    color: #334155;
     background: rgba(0, 0, 0, 0.05);
 }
 
@@ -780,8 +797,8 @@ body {
 
 [data-theme="light"] .theme-btn.active {
     background: #ffffff;
-    color: #0f172a !important;
-    box-shadow: 0 0 0 2px var(--accent-primary), 0 4px 15px rgba(0, 0, 0, 0.1);
+    color: #1e293b !important;
+    box-shadow: 0 0 0 2px var(--accent-primary), 0 4px 15px rgba(0, 0, 0, 0.08);
 }
 
 /* ==========================================================================
