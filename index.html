@@ -16,90 +16,90 @@
 
 <body>
 
-    <main class="app-container">
+    <main class="mq-app-container">
         <!-- Settings Header -->
-        <div class="modal-header">
-            <div class="header-logo">
-                <img src="icons/icon32.png" alt="MarQee Logo" class="header-icon">
-                <h2><span class="brand-name">MarQee</span> <span class="settings-text">Settings</span></h2>
+        <div class="mq-modal-header">
+            <div class="mq-header-logo">
+                <img src="icons/icon32.png" alt="MarQee Logo" class="mq-header-icon">
+                <h2><span class="mq-brand-name">MarQee</span> <span class="mq-settings-text">Settings</span></h2>
             </div>
-            <div class="header-toggle" style="display: flex; align-items: center; gap: 0.75rem;">
+            <div class="mq-header-toggle" style="display: flex; align-items: center; gap: 0.75rem;">
                 <span style="font-size: 0.95rem; font-weight: 600;">Show News Bar</span>
-                <label class="toggle-switch" aria-label="Show News Bar">
-                    <input type="checkbox" id="ticker-bar-toggle">
-                    <span class="toggle-slider"></span>
+                <label class="mq-toggle-switch" aria-label="Show News Bar">
+                    <input type="checkbox" id="mq-ticker-bar-toggle">
+                    <span class="mq-toggle-slider"></span>
                 </label>
             </div>
         </div>
 
-        <div class="settings-layout">
-            <div class="tabs-nav vertical">
-                <button class="tab-btn active" data-tab="tab-scroll">
+        <div class="mq-settings-layout">
+            <div class="mq-tabs-nav vertical">
+                <button class="mq-tab-btn active" data-tab="tab-scroll">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12" y2="18"></line></svg>
                     General
                 </button>
-                <button class="tab-btn" data-tab="tab-feed">
+                <button class="mq-tab-btn" data-tab="tab-feed">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg>
                     Feeds
                 </button>
-                <button class="tab-btn" data-tab="tab-article">
+                <button class="mq-tab-btn" data-tab="tab-article">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
                     Articles
                 </button>
-                <button class="tab-btn" data-tab="tab-style">
+                <button class="mq-tab-btn" data-tab="tab-style">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
                     Appearance
                 </button>
             </div>
 
-            <div class="modal-body">
+            <div class="mq-modal-body">
             <!-- Tab 1: General Settings (formerly Scroll) -->
-            <div class="tab-pane active" id="tab-scroll">
-                <div class="settings-section">
+            <div class="mq-tab-pane active" id="tab-scroll">
+                <div class="mq-settings-section">
                     <h3>General Settings</h3>
                     <!-- Ticker Bar Position -->
-                    <div class="setting-row">
-                        <div class="setting-label">
-                            <span class="setting-title">Position</span>
-                            <span class="setting-desc">Display at the top or bottom</span>
+                    <div class="mq-setting-row">
+                        <div class="mq-setting-label">
+                            <span class="mq-setting-title">Position</span>
+                            <span class="mq-setting-desc">Display at the top or bottom</span>
                         </div>
-                        <div class="position-toggle" id="ticker-pos-options">
-                            <button class="pos-btn active" data-pos="top">Top</button>
-                            <button class="pos-btn" data-pos="bottom">Bottom</button>
+                        <div class="mq-position-toggle" id="mq-ticker-pos-options">
+                            <button class="mq-pos-btn active" data-pos="top">Top</button>
+                            <button class="mq-pos-btn" data-pos="bottom">Bottom</button>
                         </div>
                     </div>
 
                     <!-- Shift Fixed Elements -->
-                    <div class="setting-row" id="shift-fixed-row">
-                        <div class="setting-label">
-                            <span class="setting-title">Shift Fixed Elements</span>
-                            <span class="setting-desc" style="color: #f59e0b;">(Experimental) Push down sticky sites</span>
+                    <div class="mq-setting-row" id="mq-shift-fixed-row">
+                        <div class="mq-setting-label">
+                            <span class="mq-setting-title">Shift Fixed Elements</span>
+                            <span class="mq-setting-desc" style="color: #f59e0b;">(Experimental) Push down sticky sites</span>
                         </div>
-                        <label class="toggle-switch" aria-label="Shift Fixed Elements">
-                            <input type="checkbox" id="shift-fixed-toggle">
-                            <span class="toggle-slider"></span>
+                        <label class="mq-toggle-switch" aria-label="Shift Fixed Elements">
+                            <input type="checkbox" id="mq-shift-fixed-toggle">
+                            <span class="mq-toggle-slider"></span>
                         </label>
                     </div>
 
                     <!-- Hover Pause Toggle -->
-                    <div class="setting-row">
-                        <div class="setting-label">
-                            <span class="setting-title">Pause on Hover</span>
-                            <span class="setting-desc">Stop scrolling when cursor is over news</span>
+                    <div class="mq-setting-row">
+                        <div class="mq-setting-label">
+                            <span class="mq-setting-title">Pause on Hover</span>
+                            <span class="mq-setting-desc">Stop scrolling when cursor is over news</span>
                         </div>
-                        <label class="toggle-switch" aria-label="Pause on Hover">
-                            <input type="checkbox" id="hover-pause-toggle">
-                            <span class="toggle-slider"></span>
+                        <label class="mq-toggle-switch" aria-label="Pause on Hover">
+                            <input type="checkbox" id="mq-hover-pause-toggle">
+                            <span class="mq-toggle-slider"></span>
                         </label>
                     </div>
 
                     <!-- Scroll Mode Selection -->
-                    <div class="setting-row">
-                        <div class="setting-label">
-                            <span class="setting-title">Scroll Mode</span>
-                            <span class="setting-desc">Choose how news items appear</span>
+                    <div class="mq-setting-row">
+                        <div class="mq-setting-label">
+                            <span class="mq-setting-title">Scroll Mode</span>
+                            <span class="mq-setting-desc">Choose how news items appear</span>
                         </div>
-                        <select id="scroll-mode-select" class="custom-select">
+                        <select id="mq-scroll-mode-select" class="mq-custom-select">
                             <option value="horizontal">Horizontal Scroll</option>
                             <option value="horizontal-push">Horizontal Push</option>
                             <option value="vertical-push">Vertical Push</option>
@@ -107,161 +107,161 @@
                     </div>
 
                     <!-- Speed Control (Horizontal) -->
-                    <div class="setting-row" id="speed-control-row">
-                        <div class="setting-label">
-                            <span class="setting-title">Scroll Speed</span>
-                            <span class="setting-desc">Adjust how fast the news flows</span>
+                    <div class="mq-setting-row" id="mq-speed-control-row">
+                        <div class="mq-setting-label">
+                            <span class="mq-setting-title">Scroll Speed</span>
+                            <span class="mq-setting-desc">Adjust how fast the news flows</span>
                         </div>
-                        <div class="speed-control" title="Adjust scroll speed">
-                            <input type="range" id="speed-slider" min="0.5" max="3.0" step="0.1" value="1.0"
+                        <div class="mq-speed-control" title="Adjust scroll speed">
+                            <input type="range" id="mq-speed-slider" min="0.5" max="3.0" step="0.1" value="1.0"
                                 aria-label="Speed adjustment">
-                            <span id="speed-value" class="speed-val">1.0x</span>
+                            <span id="mq-speed-value" class="mq-speed-val">1.0x</span>
                         </div>
                     </div>
 
                     <!-- Pause Duration (Vertical) -->
-                    <div class="setting-row" id="pause-duration-row" style="display: none;">
-                        <div class="setting-label">
-                            <span class="setting-title">Pause Duration</span>
-                            <span class="setting-desc">Time to stay on each article (s)</span>
+                    <div class="mq-setting-row" id="mq-pause-duration-row" style="display: none;">
+                        <div class="mq-setting-label">
+                            <span class="mq-setting-title">Pause Duration</span>
+                            <span class="mq-setting-desc">Time to stay on each article (s)</span>
                         </div>
-                        <div class="speed-control">
-                            <input type="range" id="pause-slider" min="1" max="10" step="1" value="3"
+                        <div class="mq-speed-control">
+                            <input type="range" id="mq-pause-slider" min="1" max="10" step="1" value="3"
                                 aria-label="Pause duration adjustment">
-                            <span id="pause-value" class="speed-val">3s</span>
+                            <span id="mq-pause-value" class="mq-speed-val">3s</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- Domain Filter -->
-                <div class="settings-section">
+                <div class="mq-settings-section">
                     <h3>Domain Filter</h3>
-                    <div class="setting-row">
-                        <div class="setting-label">
-                            <span class="setting-title">Filter Mode</span>
-                            <span class="setting-desc">Choose how the domain list is applied</span>
+                    <div class="mq-setting-row">
+                        <div class="mq-setting-label">
+                            <span class="mq-setting-title">Filter Mode</span>
+                            <span class="mq-setting-desc">Choose how the domain list is applied</span>
                         </div>
-                        <div class="position-toggle" id="domain-filter-mode-options">
-                            <button class="pos-btn active" data-mode="exclude">Exclude</button>
-                            <button class="pos-btn" data-mode="include">Include Only</button>
+                        <div class="mq-position-toggle" id="mq-domain-filter-mode-options">
+                            <button class="mq-pos-btn active" data-mode="exclude">Exclude</button>
+                            <button class="mq-pos-btn" data-mode="include">Include Only</button>
                         </div>
                     </div>
-                    <div class="setting-row" style="flex-direction: column; align-items: flex-start; gap: 0.75rem;">
-                        <div id="domain-filter-desc" class="setting-desc" style="margin-bottom: 0.25rem;">
+                    <div class="mq-setting-row" style="flex-direction: column; align-items: flex-start; gap: 0.75rem;">
+                        <div id="mq-domain-filter-desc" class="mq-setting-desc" style="margin-bottom: 0.25rem;">
                             The ticker will be disabled on these domains (one per line).
                         </div>
-                        <textarea id="excluded-domains-textarea" class="custom-textarea" rows="4" placeholder="www.google.com&#10;example.com" style="width: 100%; box-sizing: border-box;"></textarea>
+                        <textarea id="mq-excluded-domains-textarea" class="mq-custom-textarea" rows="4" placeholder="www.google.com&#10;example.com" style="width: 100%; box-sizing: border-box;"></textarea>
                         <div style="width: 100%; display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.5rem;">
-                            <button id="add-current-domain-btn" class="secondary-btn mini">Add Current Domain</button>
-                            <button id="save-domains-btn" class="primary-btn mini">Save Domain List</button>
+                            <button id="mq-add-current-domain-btn" class="mq-secondary-btn mini">Add Current Domain</button>
+                            <button id="mq-save-domains-btn" class="mq-primary-btn mini">Save Domain List</button>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Tab 2: Feed Management -->
-            <div class="tab-pane" id="tab-feed">
+            <div class="mq-tab-pane" id="tab-feed">
                 <!-- RSS Fetch Interval Control -->
-                <div class="settings-section">
+                <div class="mq-settings-section">
                     <h3>Update Settings</h3>
-                    <div class="setting-row">
-                        <div class="setting-label">
-                            <span class="setting-title">Update Interval</span>
-                            <span class="setting-desc">How often to check for news (minutes)</span>
+                    <div class="mq-setting-row">
+                        <div class="mq-setting-label">
+                            <span class="mq-setting-title">Update Interval</span>
+                            <span class="mq-setting-desc">How often to check for news (minutes)</span>
                         </div>
-                        <div class="speed-control" title="Adjust update interval">
-                            <input type="range" id="interval-slider" min="1" max="60" step="1" value="15"
+                        <div class="mq-speed-control" title="Adjust update interval">
+                            <input type="range" id="mq-interval-slider" min="1" max="60" step="1" value="15"
                                 aria-label="Interval adjustment">
-                            <span id="interval-value" class="speed-val">15m</span>
+                            <span id="mq-interval-value" class="mq-speed-val">15m</span>
                         </div>
                     </div>
                 </div>
 
-                <div class="settings-section feed-form-container">
-                    <h3 id="form-title">Add Feed</h3>
-                    <div class="form-group">
-                        <label for="new-genre-name">Source Name</label>
-                        <input type="text" id="new-genre-name" placeholder="e.g., World News">
+                <div class="mq-settings-section mq-feed-form-container">
+                    <h3 id="mq-form-title">Add Feed</h3>
+                    <div class="mq-form-group">
+                        <label for="mq-new-genre-name">Source Name</label>
+                        <input type="text" id="mq-new-genre-name" placeholder="e.g., World News">
                     </div>
-                    <div class="form-group">
-                        <label for="new-feed-url">RSS URL</label>
-                        <input type="url" id="new-feed-url" placeholder="https://example.com/rss.xml">
+                    <div class="mq-form-group">
+                        <label for="mq-new-feed-url">RSS URL</label>
+                        <input type="url" id="mq-new-feed-url" placeholder="https://example.com/rss.xml">
                     </div>
-                    <div class="form-actions">
-                        <button id="add-feed-btn" class="primary-btn">Add</button>
-                        <button id="cancel-edit-btn" class="secondary-btn" style="display: none;">Cancel</button>
+                    <div class="mq-form-actions">
+                        <button id="mq-add-feed-btn" class="mq-primary-btn">Add</button>
+                        <button id="mq-cancel-edit-btn" class="mq-secondary-btn" style="display: none;">Cancel</button>
                     </div>
                 </div>
 
-                <div class="settings-section feed-list-container">
+                <div class="mq-settings-section mq-feed-list-container">
                     <h3>Registered Feeds</h3>
-                    <ul class="feed-list" id="feed-list">
+                    <ul class="mq-feed-list" id="mq-feed-list">
                         <!-- Feed items will be injected here -->
                     </ul>
                 </div>
             </div>
 
             <!-- Tab 2: Article Processing -->
-            <div class="tab-pane" id="tab-article">
-                <div class="settings-section">
+            <div class="mq-tab-pane" id="tab-article">
+                <div class="mq-settings-section">
                     <h3>Article Settings</h3>
 
                     <!-- Article Age Filter Toggle -->
-                    <div class="setting-row">
-                        <div class="setting-label">
-                            <span class="setting-title">Show Recent Only</span>
-                            <span class="setting-desc">Only show articles within a time window</span>
+                    <div class="mq-setting-row">
+                        <div class="mq-setting-label">
+                            <span class="mq-setting-title">Show Recent Only</span>
+                            <span class="mq-setting-desc">Only show articles within a time window</span>
                         </div>
-                        <label class="toggle-switch" aria-label="Show Recent Only">
-                            <input type="checkbox" id="article-age-filter-toggle">
-                            <span class="toggle-slider"></span>
+                        <label class="mq-toggle-switch" aria-label="Show Recent Only">
+                            <input type="checkbox" id="mq-article-age-filter-toggle">
+                            <span class="mq-toggle-slider"></span>
                         </label>
                     </div>
 
                     <!-- Article Age Hours Slider -->
-                    <div class="setting-row" id="article-age-row" style="display: none;">
-                        <div class="setting-label">
-                            <span class="setting-title">Time Window</span>
-                            <span class="setting-desc">Show articles from the last X hours</span>
+                    <div class="mq-setting-row" id="mq-article-age-row" style="display: none;">
+                        <div class="mq-setting-label">
+                            <span class="mq-setting-title">Time Window</span>
+                            <span class="mq-setting-desc">Show articles from the last X hours</span>
                         </div>
-                        <div class="speed-control">
-                            <input type="range" id="article-age-slider" min="1" max="72" step="1" value="24"
+                        <div class="mq-speed-control">
+                            <input type="range" id="mq-article-age-slider" min="1" max="72" step="1" value="24"
                                 aria-label="Article age filter hours">
-                            <span id="article-age-value" class="speed-val">24h</span>
+                            <span id="mq-article-age-value" class="mq-speed-val">24h</span>
                         </div>
                     </div>
 
                     <!-- Article Sort Order -->
-                    <div class="setting-row">
-                        <div class="setting-label">
-                            <span class="setting-title">Sort Order</span>
-                            <span class="setting-desc">Order in which articles are shown</span>
+                    <div class="mq-setting-row">
+                        <div class="mq-setting-label">
+                            <span class="mq-setting-title">Sort Order</span>
+                            <span class="mq-setting-desc">Order in which articles are shown</span>
                         </div>
-                        <select id="article-sort-select" class="custom-select">
+                        <select id="mq-article-sort-select" class="mq-custom-select">
                             <option value="chrono">Newest First</option>
                             <option value="random">Random</option>
                         </select>
                     </div>
 
                     <!-- Blink New Articles Toggle -->
-                    <div class="setting-row">
-                        <div class="setting-label">
-                            <span class="setting-title">Blink New Articles</span>
-                            <span class="setting-desc">Highlight news from the last hour</span>
+                    <div class="mq-setting-row">
+                        <div class="mq-setting-label">
+                            <span class="mq-setting-title">Blink New Articles</span>
+                            <span class="mq-setting-desc">Highlight news from the last hour</span>
                         </div>
-                        <label class="toggle-switch" aria-label="Blink New Articles">
-                            <input type="checkbox" id="blink-new-toggle">
-                            <span class="toggle-slider"></span>
+                        <label class="mq-toggle-switch" aria-label="Blink New Articles">
+                            <input type="checkbox" id="mq-blink-new-toggle">
+                            <span class="mq-toggle-slider"></span>
                         </label>
                     </div>
 
                     <!-- Article Grouping -->
-                    <div class="setting-row">
-                        <div class="setting-label">
-                            <span class="setting-title">Display Mode</span>
-                            <span class="setting-desc">Group by source or mix them all</span>
+                    <div class="mq-setting-row">
+                        <div class="mq-setting-label">
+                            <span class="mq-setting-title">Display Mode</span>
+                            <span class="mq-setting-desc">Group by source or mix them all</span>
                         </div>
-                        <select id="article-group-select" class="custom-select">
+                        <select id="mq-article-group-select" class="mq-custom-select">
                             <option value="grouped">Group by Source</option>
                             <option value="mixed">Mixed</option>
                         </select>
@@ -270,17 +270,17 @@
             </div>
 
             <!-- Tab 3: Visual Style -->
-            <div class="tab-pane" id="tab-style">
-                <div class="settings-section">
+            <div class="mq-tab-pane" id="tab-style">
+                <div class="mq-settings-section">
                     <h3>Style Customization</h3>
 
                     <!-- Color Scheme Selection -->
-                    <div class="setting-row">
-                        <div class="setting-label">
-                            <span class="setting-title">Color Scheme</span>
-                            <span class="setting-desc">Change the news bar colors</span>
+                    <div class="mq-setting-row">
+                        <div class="mq-setting-label">
+                            <span class="mq-setting-title">Color Scheme</span>
+                            <span class="mq-setting-desc">Change the news bar colors</span>
                         </div>
-                        <select id="color-scheme-select" class="custom-select">
+                        <select id="mq-color-scheme-select" class="mq-custom-select">
                             <option value="system">System (Default)</option>
                             <option value="light">Light</option>
                             <option value="dark">Dark</option>
@@ -293,79 +293,79 @@
                     </div>
 
                     <!-- Custom Scheme Colors (Nested) -->
-                    <div id="custom-colors-container" class="sub-settings-container">
+                    <div id="mq-custom-colors-container" class="mq-sub-settings-container">
                         <!-- Light Mode Color Picker -->
-                        <div id="group-light-color" class="setting-row sub-row">
-                            <div class="setting-label">
-                                <span class="setting-title">Light Mode Text</span>
+                        <div id="mq-group-light-color" class="mq-setting-row mq-sub-row">
+                            <div class="mq-setting-label">
+                                <span class="mq-setting-title">Light Mode Text</span>
                             </div>
-                            <div class="color-picker-group">
-                                <input type="color" id="color-light-picker" value="#2563eb">
-                                <button id="reset-light-color" class="reset-btn" title="Reset to default">
+                            <div class="mq-color-picker-group">
+                                <input type="color" id="mq-color-light-picker" value="#2563eb">
+                                <button id="mq-reset-light-color" class="mq-reset-btn" title="Reset to default">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M8 16H3v5"></path></svg>
                                 </button>
                             </div>
                         </div>
 
                         <!-- Dark Mode Color Picker -->
-                        <div id="group-dark-color" class="setting-row sub-row">
-                            <div class="setting-label">
-                                <span class="setting-title">Dark Mode Text</span>
+                        <div id="mq-group-dark-color" class="mq-setting-row mq-sub-row">
+                            <div class="mq-setting-label">
+                                <span class="mq-setting-title">Dark Mode Text</span>
                             </div>
-                            <div class="color-picker-group">
-                                <input type="color" id="color-dark-picker" value="#3b82f6">
-                                <button id="reset-dark-color" class="reset-btn" title="Reset to default">
+                            <div class="mq-color-picker-group">
+                                <input type="color" id="mq-color-dark-picker" value="#3b82f6">
+                                <button id="mq-reset-dark-color" class="mq-reset-btn" title="Reset to default">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M8 16H3v5"></path></svg>
                                 </button>
                             </div>
                         </div>
 
                         <!-- Tricolor LED Customization -->
-                        <div id="group-tricolor-color">
-                            <div class="setting-row sub-row">
-                                <div class="setting-label">
-                                    <span class="setting-title">Article Title</span>
+                        <div id="mq-group-tricolor-color">
+                            <div class="mq-setting-row mq-sub-row">
+                                <div class="mq-setting-label">
+                                    <span class="mq-setting-title">Article Title</span>
                                 </div>
-                                <select id="tricolor-link-select" class="custom-select mini">
+                                <select id="mq-tricolor-link-select" class="mq-custom-select mini">
                                     <option value="#ffb000">Orange</option>
                                     <option value="#00ff41">Green</option>
                                     <option value="#ff4d4d">Red</option>
                                 </select>
                             </div>
-                            <div class="setting-row sub-row">
-                                <div class="setting-label">
-                                    <span class="setting-title">Timestamp</span>
+                            <div class="mq-setting-row mq-sub-row">
+                                <div class="mq-setting-label">
+                                    <span class="mq-setting-title">Timestamp</span>
                                 </div>
-                                <select id="tricolor-time-select" class="custom-select mini">
+                                <select id="mq-tricolor-time-select" class="mq-custom-select mini">
                                     <option value="#ffb000">Orange</option>
                                     <option value="#00ff41">Green</option>
                                     <option value="#ff4d4d">Red</option>
                                 </select>
                             </div>
-                            <div class="setting-row sub-row">
-                                <div class="setting-label">
-                                    <span class="setting-title">Source Name</span>
+                            <div class="mq-setting-row mq-sub-row">
+                                <div class="mq-setting-label">
+                                    <span class="mq-setting-title">Source Name</span>
                                 </div>
-                                <select id="tricolor-source-select" class="custom-select mini">
+                                <select id="mq-tricolor-source-select" class="mq-custom-select mini">
                                     <option value="#ffb000">Orange</option>
                                     <option value="#00ff41">Green</option>
                                     <option value="#ff4d4d">Red</option>
                                 </select>
                             </div>
-                            <div class="setting-row sub-row" style="justify-content: flex-end; padding-top: 0.5rem; padding-bottom: 0.5rem;">
-                                <button id="reset-tricolor-colors" class="secondary-btn mini">Reset Tricolor Defaults</button>
+                            <div class="mq-setting-row mq-sub-row" style="justify-content: flex-end; padding-top: 0.5rem; padding-bottom: 0.5rem;">
+                                <button id="mq-reset-tricolor-colors" class="mq-secondary-btn mini">Reset Tricolor Defaults</button>
                             </div>
                         </div>
                     </div>
 
 
                     <!-- Font Weight Selection -->
-                    <div class="setting-row">
-                        <div class="setting-label">
-                            <span class="setting-title">Font Weight</span>
-                            <span class="setting-desc">Adjust the thickness of the text</span>
+                    <div class="mq-setting-row">
+                        <div class="mq-setting-label">
+                            <span class="mq-setting-title">Font Weight</span>
+                            <span class="mq-setting-desc">Adjust the thickness of the text</span>
                         </div>
-                        <select id="font-weight-select" class="custom-select">
+                        <select id="mq-font-weight-select" class="mq-custom-select">
                             <option value="light">Light</option>
                             <option value="normal" selected>Normal</option>
                             <option value="bold">Bold</option>
@@ -373,62 +373,62 @@
                     </div>
 
                     <!-- Font Size Control -->
-                    <div class="setting-row">
-                        <div class="setting-label">
-                            <span class="setting-title">Font Size</span>
-                            <span class="setting-desc">Adjust the size of the ticker text</span>
+                    <div class="mq-setting-row">
+                        <div class="mq-setting-label">
+                            <span class="mq-setting-title">Font Size</span>
+                            <span class="mq-setting-desc">Adjust the size of the ticker text</span>
                         </div>
-                        <div class="speed-control">
-                            <input type="range" id="font-size-slider" min="10" max="24" step="1" value="14"
+                        <div class="mq-speed-control">
+                            <input type="range" id="mq-font-size-slider" min="10" max="24" step="1" value="14"
                                 aria-label="Font size adjustment">
-                            <span id="font-size-value" class="speed-val">14px</span>
+                            <span id="mq-font-size-value" class="mq-speed-val">14px</span>
                         </div>
                     </div>
 
                     <!-- Visual Effect Selection (Segmented Control) -->
-                    <div class="setting-row" id="visual-effect-row">
-                        <div class="setting-label">
-                            <span class="setting-title">Visual Effect</span>
-                            <span class="setting-desc">Choose a premium overlay effect</span>
+                    <div class="mq-setting-row" id="mq-visual-effect-row">
+                        <div class="mq-setting-label">
+                            <span class="mq-setting-title">Visual Effect</span>
+                            <span class="mq-setting-desc">Choose a premium overlay effect</span>
                         </div>
-                        <div class="position-toggle" id="visual-effect-options">
-                            <button class="pos-btn active" data-effect="none">None</button>
-                            <button class="pos-btn" data-effect="glass">Glass</button>
-                            <button class="pos-btn" data-effect="led">LED</button>
+                        <div class="mq-position-toggle" id="mq-visual-effect-options">
+                            <button class="mq-pos-btn active" data-effect="none">None</button>
+                            <button class="mq-pos-btn" data-effect="glass">Glass</button>
+                            <button class="mq-pos-btn" data-effect="led">LED</button>
                         </div>
                     </div>
 
                     <!-- Glass Blur Intensity -->
-                    <div class="setting-row" id="glass-blur-row" style="display:none;">
-                        <div class="setting-label">
-                            <span class="setting-title">Blur Intensity</span>
-                            <span class="setting-desc">Adjust the background blur strength</span>
+                    <div class="mq-setting-row" id="mq-glass-blur-row" style="display:none;">
+                        <div class="mq-setting-label">
+                            <span class="mq-setting-title">Blur Intensity</span>
+                            <span class="mq-setting-desc">Adjust the background blur strength</span>
                         </div>
-                        <div class="speed-control">
-                            <input type="range" id="glass-blur-slider" min="0" max="20" step="1" value="12">
-                            <span id="glass-blur-value" class="speed-val">12px</span>
+                        <div class="mq-speed-control">
+                            <input type="range" id="mq-glass-blur-slider" min="0" max="20" step="1" value="12">
+                            <span id="mq-glass-blur-value" class="mq-speed-val">12px</span>
                         </div>
                     </div>
 
                     <!-- Glass Brightness -->
-                    <div class="setting-row" id="glass-brightness-row" style="display:none;">
-                        <div class="setting-label">
-                            <span class="setting-title">Brightness</span>
-                            <span class="setting-desc">Adjust glass overlay brightness</span>
+                    <div class="mq-setting-row" id="mq-glass-brightness-row" style="display:none;">
+                        <div class="mq-setting-label">
+                            <span class="mq-setting-title">Brightness</span>
+                            <span class="mq-setting-desc">Adjust glass overlay brightness</span>
                         </div>
-                        <div class="speed-control">
-                            <input type="range" id="glass-brightness-slider" min="0.2" max="2.0" step="0.1" value="1.0">
-                            <span id="glass-brightness-value" class="speed-val">1.0</span>
+                        <div class="mq-speed-control">
+                            <input type="range" id="mq-glass-brightness-slider" min="0.2" max="2.0" step="0.1" value="1.0">
+                            <span id="mq-glass-brightness-value" class="mq-speed-val">1.0</span>
                         </div>
                     </div>
 
                     <!-- LED Blend Mode -->
-                    <div class="setting-row" id="led-blend-mode-row">
-                        <div class="setting-label">
-                            <span class="setting-title">Blend Mode</span>
-                            <span class="setting-desc">How the LED grid combines with text</span>
+                    <div class="mq-setting-row" id="mq-led-blend-mode-row">
+                        <div class="mq-setting-label">
+                            <span class="mq-setting-title">Blend Mode</span>
+                            <span class="mq-setting-desc">How the LED grid combines with text</span>
                         </div>
-                        <select id="led-blend-mode-select" class="custom-select">
+                        <select id="mq-led-blend-mode-select" class="mq-custom-select">
                             <option value="screen">Screen</option>
                             <option value="overlay" selected>Overlay</option>
                             <option value="lighten">Lighten</option>
@@ -439,15 +439,15 @@
                     </div>
 
                     <!-- LED Grid Opacity -->
-                    <div class="setting-row" id="led-opacity-row">
-                        <div class="setting-label">
-                            <span class="setting-title">Grid Opacity</span>
-                            <span class="setting-desc">Adjust the visibility of the LED grid</span>
+                    <div class="mq-setting-row" id="mq-led-opacity-row">
+                        <div class="mq-setting-label">
+                            <span class="mq-setting-title">Grid Opacity</span>
+                            <span class="mq-setting-desc">Adjust the visibility of the LED grid</span>
                         </div>
-                        <div class="speed-control">
-                            <input type="range" id="led-opacity-slider" min="0" max="1" step="0.1" value="0.6"
+                        <div class="mq-speed-control">
+                            <input type="range" id="mq-led-opacity-slider" min="0" max="1" step="0.1" value="0.6"
                                 aria-label="Grid opacity adjustment">
-                            <span id="led-opacity-value" class="speed-val">0.6</span>
+                            <span id="mq-led-opacity-value" class="mq-speed-val">0.6</span>
                         </div>
                     </div>
 

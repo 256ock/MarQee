@@ -68,74 +68,74 @@ let tricolorSourceColor = DEFAULT_TRICOLOR_SOURCE;
 let editingFeedId = null; // ID of the feed being edited
 
 // 2. DOM Elements
-const appContainer = document.querySelector('.app-container');
+const appContainer = document.querySelector('.mq-app-container');
 
 // Settings Modal & Features Elements
-const feedList = document.getElementById('feed-list');
-const addFeedBtn = document.getElementById('add-feed-btn');
-const newGenreNameInput = document.getElementById('new-genre-name');
-const newFeedUrlInput = document.getElementById('new-feed-url');
-const speedSlider = document.getElementById('speed-slider');
-const speedValueDisplay = document.getElementById('speed-value');
-const hoverPauseToggle = document.getElementById('hover-pause-toggle');
-const intervalSlider = document.getElementById('interval-slider');
-const intervalValueDisplay = document.getElementById('interval-value');
-const colorSchemeSelect = document.getElementById('color-scheme-select');
-const visualEffectOptions = document.getElementById('visual-effect-options');
-const ledOpacitySlider = document.getElementById('led-opacity-slider');
-const ledOpacityValueDisplay = document.getElementById('led-opacity-value');
-const ledOpacityRow = document.getElementById('led-opacity-row');
-const ledBlendModeSelect = document.getElementById('led-blend-mode-select');
-const ledBlendModeRow = document.getElementById('led-blend-mode-row');
-const glassBlurSlider = document.getElementById('glass-blur-slider');
-const glassBlurValueDisplay = document.getElementById('glass-blur-value');
-const glassBlurRow = document.getElementById('glass-blur-row');
-const glassBrightnessSlider = document.getElementById('glass-brightness-slider');
-const glassBrightnessValueDisplay = document.getElementById('glass-brightness-value');
-const glassBrightnessRow = document.getElementById('glass-brightness-row');
-const fontWeightSelect = document.getElementById('font-weight-select');
-const articleSortSelect = document.getElementById('article-sort-select');
-const articleGroupSelect = document.getElementById('article-group-select');
-const blinkNewToggle = document.getElementById('blink-new-toggle');
-const scrollModeSelect = document.getElementById('scroll-mode-select');
-const speedControlRow = document.getElementById('speed-control-row');
-const pauseDurationRow = document.getElementById('pause-duration-row');
-const pauseSlider = document.getElementById('pause-slider');
-const pauseValueDisplay = document.getElementById('pause-value');
-const fontSizeSlider = document.getElementById('font-size-slider');
-const fontSizeValueDisplay = document.getElementById('font-size-value');
-const articleAgeFilterToggle = document.getElementById('article-age-filter-toggle');
-const articleAgeSlider = document.getElementById('article-age-slider');
-const articleAgeValueDisplay = document.getElementById('article-age-value');
-const articleAgeRow = document.getElementById('article-age-row');
-const excludedDomainsTextarea = document.getElementById('excluded-domains-textarea');
-const saveDomainsBtn = document.getElementById('save-domains-btn');
-const addCurrentDomainBtn = document.getElementById('add-current-domain-btn');
-const domainFilterModeOptions = document.getElementById('domain-filter-mode-options');
-const domainFilterDesc = document.getElementById('domain-filter-desc');
+const feedList = document.getElementById('mq-feed-list');
+const addFeedBtn = document.getElementById('mq-add-feed-btn');
+const newGenreNameInput = document.getElementById('mq-new-genre-name');
+const newFeedUrlInput = document.getElementById('mq-new-feed-url');
+const speedSlider = document.getElementById('mq-speed-slider');
+const speedValueDisplay = document.getElementById('mq-speed-value');
+const hoverPauseToggle = document.getElementById('mq-hover-pause-toggle');
+const intervalSlider = document.getElementById('mq-interval-slider');
+const intervalValueDisplay = document.getElementById('mq-interval-value');
+const colorSchemeSelect = document.getElementById('mq-color-scheme-select');
+const visualEffectOptions = document.getElementById('mq-visual-effect-options');
+const ledOpacitySlider = document.getElementById('mq-led-opacity-slider');
+const ledOpacityValueDisplay = document.getElementById('mq-led-opacity-value');
+const ledOpacityRow = document.getElementById('mq-led-opacity-row');
+const ledBlendModeSelect = document.getElementById('mq-led-blend-mode-select');
+const ledBlendModeRow = document.getElementById('mq-led-blend-mode-row');
+const glassBlurSlider = document.getElementById('mq-glass-blur-slider');
+const glassBlurValueDisplay = document.getElementById('mq-glass-blur-value');
+const glassBlurRow = document.getElementById('mq-glass-blur-row');
+const glassBrightnessSlider = document.getElementById('mq-glass-brightness-slider');
+const glassBrightnessValueDisplay = document.getElementById('mq-glass-brightness-value');
+const glassBrightnessRow = document.getElementById('mq-glass-brightness-row');
+const fontWeightSelect = document.getElementById('mq-font-weight-select');
+const articleSortSelect = document.getElementById('mq-article-sort-select');
+const articleGroupSelect = document.getElementById('mq-article-group-select');
+const blinkNewToggle = document.getElementById('mq-blink-new-toggle');
+const scrollModeSelect = document.getElementById('mq-scroll-mode-select');
+const speedControlRow = document.getElementById('mq-speed-control-row');
+const pauseDurationRow = document.getElementById('mq-pause-duration-row');
+const pauseSlider = document.getElementById('mq-pause-slider');
+const pauseValueDisplay = document.getElementById('mq-pause-value');
+const fontSizeSlider = document.getElementById('mq-font-size-slider');
+const fontSizeValueDisplay = document.getElementById('mq-font-size-value');
+const articleAgeFilterToggle = document.getElementById('mq-article-age-filter-toggle');
+const articleAgeSlider = document.getElementById('mq-article-age-slider');
+const articleAgeValueDisplay = document.getElementById('mq-article-age-value');
+const articleAgeRow = document.getElementById('mq-article-age-row');
+const excludedDomainsTextarea = document.getElementById('mq-excluded-domains-textarea');
+const saveDomainsBtn = document.getElementById('mq-save-domains-btn');
+const addCurrentDomainBtn = document.getElementById('mq-add-current-domain-btn');
+const domainFilterModeOptions = document.getElementById('mq-domain-filter-mode-options');
+const domainFilterDesc = document.getElementById('mq-domain-filter-desc');
 
-const colorLightPicker = document.getElementById('color-light-picker');
-const colorDarkPicker = document.getElementById('color-dark-picker');
-const colorTricolorPicker = document.getElementById('color-tricolor-picker');
-const resetLightBtn = document.getElementById('reset-light-color');
-const resetDarkBtn = document.getElementById('reset-dark-color');
-const resetTricolorBtn = document.getElementById('reset-tricolor-color'); // Legacy (unlikely to exist now)
+const colorLightPicker = document.getElementById('mq-color-light-picker');
+const colorDarkPicker = document.getElementById('mq-color-dark-picker');
+const colorTricolorPicker = document.getElementById('mq-color-tricolor-picker');
+const resetLightBtn = document.getElementById('mq-reset-light-color');
+const resetDarkBtn = document.getElementById('mq-reset-dark-color');
+const resetTricolorBtn = document.getElementById('mq-reset-tricolor-color'); // Legacy (unlikely to exist now)
 
-const tricolorLinkSelect = document.getElementById('tricolor-link-select');
-const tricolorTimeSelect = document.getElementById('tricolor-time-select');
-const tricolorSourceSelect = document.getElementById('tricolor-source-select');
-const resetTricolorColorsBtn = document.getElementById('reset-tricolor-colors');
+const tricolorLinkSelect = document.getElementById('mq-tricolor-link-select');
+const tricolorTimeSelect = document.getElementById('mq-tricolor-time-select');
+const tricolorSourceSelect = document.getElementById('mq-tricolor-source-select');
+const resetTricolorColorsBtn = document.getElementById('mq-reset-tricolor-colors');
 
-const customColorsContainer = document.getElementById('custom-colors-container');
-const groupLightColor = document.getElementById('group-light-color');
-const groupDarkColor = document.getElementById('group-dark-color');
-const groupTricolorColor = document.getElementById('group-tricolor-color');
+const customColorsContainer = document.getElementById('mq-custom-colors-container');
+const groupLightColor = document.getElementById('mq-group-light-color');
+const groupDarkColor = document.getElementById('mq-group-dark-color');
+const groupTricolorColor = document.getElementById('mq-group-tricolor-color');
 
 
 // Feed Form elements
-const formTitle = document.getElementById('form-title');
-const cancelEditBtn = document.getElementById('cancel-edit-btn');
-const feedForm = document.querySelector('.feed-form');
+const formTitle = document.getElementById('mq-form-title');
+const cancelEditBtn = document.getElementById('mq-cancel-edit-btn');
+const feedForm = document.querySelector('.mq-feed-form-container');
 
 // 3. Logic: Storage
 // (Now Chrome Extension only)
@@ -356,7 +356,7 @@ async function saveVisualEffect(effect) {
 
 function updateVisualEffectUI() {
     if (!visualEffectOptions) return;
-    visualEffectOptions.querySelectorAll('.pos-btn').forEach(btn => {
+    visualEffectOptions.querySelectorAll('.mq-pos-btn').forEach(btn => {
         if (btn.dataset.effect === currentVisualEffect) btn.classList.add('active');
         else btn.classList.remove('active');
     });
@@ -552,7 +552,7 @@ async function saveDomainFilterMode(mode) {
 
 function updateDomainFilterModeUI() {
     if (domainFilterModeOptions) {
-        domainFilterModeOptions.querySelectorAll('.pos-btn').forEach(btn => {
+        domainFilterModeOptions.querySelectorAll('.mq-pos-btn').forEach(btn => {
             if (btn.dataset.mode === domainFilterMode) btn.classList.add('active');
             else btn.classList.remove('active');
         });
@@ -694,39 +694,39 @@ function renderSettingsFeedList() {
 
     userFeeds.forEach((feed, index) => {
         const li = document.createElement('li');
-        li.className = 'feed-item';
+        li.className = 'mq-feed-item';
         li.draggable = true;
         li.dataset.index = index;
-        if (feed.enabled === false) li.classList.add('disabled');
+        if (feed.enabled === false) li.classList.add('mq-disabled');
 
         li.innerHTML = `
-            <div class="drag-handle" aria-label="Drag to reorder">
+            <div class="mq-drag-handle" aria-label="Drag to reorder">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="12" r="1"></circle><circle cx="9" cy="5" r="1"></circle><circle cx="9" cy="19" r="1"></circle><circle cx="15" cy="12" r="1"></circle><circle cx="15" cy="5" r="1"></circle><circle cx="15" cy="19" r="1"></circle></svg>
             </div>
-            <label class="toggle-switch feed-toggle" title="${feed.enabled !== false ? 'Disable' : 'Enable'}">
-                <input type="checkbox" class="feed-enabled-checkbox" data-index="${index}" ${feed.enabled !== false ? 'checked' : ''}>
-                <span class="toggle-slider"></span>
+            <label class="mq-toggle-switch mq-feed-toggle" title="${feed.enabled !== false ? 'Disable' : 'Enable'}">
+                <input type="checkbox" class="mq-feed-enabled-checkbox" data-index="${index}" ${feed.enabled !== false ? 'checked' : ''}>
+                <span class="mq-toggle-slider"></span>
             </label>
-            <div class="feed-info">
-                <span class="feed-name">${escapeHTML(feed.name)}</span>
-                <span class="feed-url">${escapeHTML(feed.url)}</span>
+            <div class="mq-feed-info">
+                <span class="mq-feed-name">${escapeHTML(feed.name)}</span>
+                <span class="mq-feed-url">${escapeHTML(feed.url)}</span>
             </div>
-            <div class="feed-item-actions" style="display:flex; gap:0.25rem;">
-                <button class="edit-btn" type="button" data-index="${index}" aria-label="Edit">
+            <div class="mq-feed-item-actions" style="display:flex; gap:0.25rem;">
+                <button class="mq-edit-btn" type="button" data-index="${index}" aria-label="Edit">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                 </button>
-                <button class="delete-btn" type="button" data-id="${feed.id}" aria-label="Delete">
+                <button class="mq-delete-btn" type="button" data-id="${feed.id}" aria-label="Delete">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                 </button>
             </div>
         `;
 
         if (editingFeedId === feed.id) {
-            li.classList.add('editing');
+            li.classList.add('mq-editing');
         }
 
         // Toggle enabled state
-        const checkbox = li.querySelector('.feed-enabled-checkbox');
+        const checkbox = li.querySelector('.mq-feed-enabled-checkbox');
         checkbox.addEventListener('change', () => {
             userFeeds[index].enabled = checkbox.checked;
             saveFeeds();
@@ -739,13 +739,13 @@ function renderSettingsFeedList() {
             e.dataTransfer.effectAllowed = 'move';
             // required for firefox
             e.dataTransfer.setData('text/plain', index);
-            setTimeout(() => li.classList.add('dragging'), 0);
+            setTimeout(() => li.classList.add('mq-dragging'), 0);
         });
 
         li.addEventListener('dragend', () => {
             draggedItemIndex = null;
-            li.classList.remove('dragging');
-            document.querySelectorAll('.feed-item').forEach(item => item.classList.remove('drag-over'));
+            li.classList.remove('mq-dragging');
+            document.querySelectorAll('.mq-feed-item').forEach(item => item.classList.remove('mq-drag-over'));
         });
 
         li.addEventListener('dragover', (e) => {
@@ -756,17 +756,17 @@ function renderSettingsFeedList() {
         li.addEventListener('dragenter', (e) => {
             e.preventDefault();
             if (index !== draggedItemIndex) {
-                li.classList.add('drag-over');
+                li.classList.add('mq-drag-over');
             }
         });
 
         li.addEventListener('dragleave', () => {
-            li.classList.remove('drag-over');
+            li.classList.remove('mq-drag-over');
         });
 
         li.addEventListener('drop', (e) => {
             e.preventDefault();
-            li.classList.remove('drag-over');
+            li.classList.remove('mq-drag-over');
 
             if (draggedItemIndex === null || draggedItemIndex === index) return;
 
@@ -779,7 +779,7 @@ function renderSettingsFeedList() {
         });
 
         // Edit button
-        const editBtn = li.querySelector('.edit-btn');
+        const editBtn = li.querySelector('.mq-edit-btn');
         editBtn.addEventListener('click', (e) => {
             e.preventDefault();
             handleStartEdit(index);
@@ -788,14 +788,14 @@ function renderSettingsFeedList() {
 
         // Delete button with 2-step confirmation
         let deleteTimeout;
-        const deleteBtn = li.querySelector('.delete-btn');
+        const deleteBtn = li.querySelector('.mq-delete-btn');
         deleteBtn.addEventListener('click', (e) => {
             e.preventDefault();
-            if (deleteBtn.classList.contains('confirm-mode')) {
+            if (deleteBtn.classList.contains('mq-confirm-mode')) {
                 clearTimeout(deleteTimeout);
                 handleDeleteFeed(feed.id);
             } else {
-                deleteBtn.classList.add('confirm-mode');
+                deleteBtn.classList.add('mq-confirm-mode');
                 deleteBtn.innerHTML = '<span style="font-size:0.75rem; font-weight:600;">Confirm Delete</span>';
                 deleteBtn.style.color = 'var(--danger)';
                 deleteBtn.style.background = 'rgba(239, 68, 68, 0.1)';
@@ -803,7 +803,7 @@ function renderSettingsFeedList() {
 
                 deleteTimeout = setTimeout(() => {
                     if (document.body.contains(deleteBtn)) {
-                        deleteBtn.classList.remove('confirm-mode');
+                        deleteBtn.classList.remove('mq-confirm-mode');
                         deleteBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>';
                         deleteBtn.style.color = '';
                         deleteBtn.style.background = '';
@@ -966,7 +966,7 @@ async function init() {
 
     if (domainFilterModeOptions) {
         domainFilterModeOptions.addEventListener('click', (e) => {
-            const btn = e.target.closest('.pos-btn');
+            const btn = e.target.closest('.mq-pos-btn');
             if (!btn || !btn.dataset.mode) return;
             saveDomainFilterMode(btn.dataset.mode);
         });
@@ -980,7 +980,7 @@ async function init() {
 
     if (visualEffectOptions) {
         visualEffectOptions.addEventListener('click', (e) => {
-            const btn = e.target.closest('.pos-btn');
+            const btn = e.target.closest('.mq-pos-btn');
             if (btn) {
                 saveVisualEffect(btn.dataset.effect);
             }
@@ -1129,9 +1129,9 @@ async function init() {
         }
     });
 
-    const tickerBarToggle = document.getElementById('ticker-bar-toggle');
-    const tickerPosOptions = document.getElementById('ticker-pos-options');
-    const shiftFixedToggle = document.getElementById('shift-fixed-toggle');
+    const tickerBarToggle = document.getElementById('mq-ticker-bar-toggle');
+    const tickerPosOptions = document.getElementById('mq-ticker-pos-options');
+    const shiftFixedToggle = document.getElementById('mq-shift-fixed-toggle');
 
     if (shiftFixedToggle) {
         const data = await chrome.storage.local.get('newsTickerShiftFixed');
@@ -1150,10 +1150,10 @@ async function init() {
     }
 
     if (tickerPosOptions) {
-        const shiftFixedRow = document.getElementById('shift-fixed-row');
+        const shiftFixedRow = document.getElementById('mq-shift-fixed-row');
         const data = await chrome.storage.local.get('newsTickerBarPos');
         const currentPos = data.newsTickerBarPos || 'top';
-        tickerPosOptions.querySelectorAll('.pos-btn').forEach(btn => {
+        tickerPosOptions.querySelectorAll('.mq-pos-btn').forEach(btn => {
             if (btn.dataset.pos === currentPos) btn.classList.add('active');
             else btn.classList.remove('active');
         });
@@ -1163,9 +1163,9 @@ async function init() {
         }
 
         tickerPosOptions.addEventListener('click', async (e) => {
-            const btn = e.target.closest('.pos-btn');
+            const btn = e.target.closest('.mq-pos-btn');
             if (btn) {
-                tickerPosOptions.querySelectorAll('.pos-btn').forEach(b => b.classList.remove('active'));
+                tickerPosOptions.querySelectorAll('.mq-pos-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 await chrome.storage.local.set({ 'newsTickerBarPos': btn.dataset.pos });
 
@@ -1179,8 +1179,8 @@ async function init() {
     addFeedBtn.addEventListener('click', handleAddFeed);
 
     // Tab switching logic
-    const tabBtns = document.querySelectorAll('.tab-btn');
-    const tabPanes = document.querySelectorAll('.tab-pane');
+    const tabBtns = document.querySelectorAll('.mq-tab-btn');
+    const tabPanes = document.querySelectorAll('.mq-tab-pane');
 
     tabBtns.forEach(btn => {
         btn.addEventListener('click', () => {

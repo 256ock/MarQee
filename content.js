@@ -168,9 +168,9 @@
     async function createTicker() {
         if (container) return;
 
-        container = document.createElement('nt-ticker');
-        container.id = 'nt-container';
-        container.classList.add(`nt-${position}`);
+        container = document.createElement('mq-ticker');
+        container.id = 'mq-container';
+        container.classList.add(`mq-${position}`);
 
         // Create Shadow DOM
         shadow = container.attachShadow({ mode: 'open' });
@@ -197,14 +197,14 @@
         applyModeClasses();
 
         track = document.createElement('div');
-        track.id = 'nt-track';
+        track.id = 'mq-track';
 
         // Navigation buttons for vertical mode
         navButtonsEl = document.createElement('div');
-        navButtonsEl.className = 'nt-nav-buttons';
+        navButtonsEl.className = 'mq-nav-buttons';
 
         navUpBtn = document.createElement('button');
-        navUpBtn.className = 'nt-nav-btn';
+        navUpBtn.className = 'mq-nav-btn';
         navUpBtn.textContent = '▲';
         navUpBtn.disabled = true;
         navUpBtn.addEventListener('click', (e) => {
@@ -213,7 +213,7 @@
         });
 
         navDownBtn = document.createElement('button');
-        navDownBtn.className = 'nt-nav-btn';
+        navDownBtn.className = 'mq-nav-btn';
         navDownBtn.textContent = '▼';
         navDownBtn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -228,7 +228,7 @@
 
         // Add rendering class if tab is currently visible
         if (!document.hidden) {
-            track.classList.add('nt-rendering');
+            track.classList.add('mq-rendering');
         }
 
         // Adjust body padding to not overlap
@@ -238,9 +238,9 @@
     function applyHoverPauseClass() {
         if (!container) return;
         if (hoverPause) {
-            container.classList.add('hover-pause-enabled');
+            container.classList.add('mq-hover-pause-enabled');
         } else {
-            container.classList.remove('hover-pause-enabled');
+            container.classList.remove('mq-hover-pause-enabled');
         }
     }
 
@@ -256,74 +256,74 @@
         }
 
         if (isLight) {
-            container.classList.add('theme-light');
+            container.classList.add('mq-theme-light');
         } else {
-            container.classList.remove('theme-light');
+            container.classList.remove('mq-theme-light');
         }
 
         // Remove existing scheme classes
-        const schemeClasses = Array.from(container.classList).filter(c => c.startsWith('nt-scheme-'));
+        const schemeClasses = Array.from(container.classList).filter(c => c.startsWith('mq-scheme-'));
         schemeClasses.forEach(c => container.classList.remove(c));
 
         // Add new scheme class (if not light/dark/system)
         if (colorScheme !== 'light' && colorScheme !== 'dark' && colorScheme !== 'system') {
-            container.classList.add(`nt-scheme-${colorScheme}`);
+            container.classList.add(`mq-scheme-${colorScheme}`);
         }
 
         // Add font weight class
-        const weightClasses = ['nt-weight-light', 'nt-weight-normal', 'nt-weight-bold'];
+        const weightClasses = ['mq-weight-light', 'mq-weight-normal', 'mq-weight-bold'];
         weightClasses.forEach(c => container.classList.remove(c));
-        container.classList.add(`nt-weight-${fontWeight}`);
+        container.classList.add(`mq-weight-${fontWeight}`);
 
         // Handle Visual Effects
         const isLED = (visualEffect === 'led') && !isLight;
         const isGlass = (visualEffect === 'glass');
 
         // LED Overlay & Class
-        let overlay = shadow.querySelector('.nt-led-overlay');
+        let overlay = shadow.querySelector('.mq-led-overlay');
         if (isLED) {
-            container.classList.add('nt-led-enabled');
+            container.classList.add('mq-led-enabled');
             if (!overlay) {
                 overlay = document.createElement('div');
-                overlay.className = 'nt-led-overlay';
+                overlay.className = 'mq-led-overlay';
                 shadow.appendChild(overlay);
             }
-            container.style.setProperty('--nt-led-opacity', ledOpacity);
-            container.style.setProperty('--nt-led-blend-mode', ledBlendMode);
+            container.style.setProperty('--mq-led-opacity', ledOpacity);
+            container.style.setProperty('--mq-led-blend-mode', ledBlendMode);
         } else {
-            container.classList.remove('nt-led-enabled');
+            container.classList.remove('mq-led-enabled');
             if (overlay) overlay.remove();
         }
 
         // Glass Class
         if (isGlass) {
-            container.classList.add('nt-glass-enabled');
+            container.classList.add('mq-glass-enabled');
         } else {
-            container.classList.remove('nt-glass-enabled');
+            container.classList.remove('mq-glass-enabled');
         }
 
         // Apply font size and height
         const barHeight = fontSize + 18;
-        container.style.setProperty('--nt-font-size', `${fontSize}px`);
-        container.style.setProperty('--nt-height', `${barHeight}px`);
-        container.style.setProperty('--nt-glass-blur', `${glassBlur}px`);
-        container.style.setProperty('--nt-glass-brightness', glassBrightness);
+        container.style.setProperty('--mq-font-size', `${fontSize}px`);
+        container.style.setProperty('--mq-height', `${barHeight}px`);
+        container.style.setProperty('--mq-glass-blur', `${glassBlur}px`);
+        container.style.setProperty('--mq-glass-brightness', glassBrightness);
 
         // Apply Custom Colors
-        container.style.setProperty('--nt-custom-light-color', customColorLight);
-        container.style.setProperty('--nt-custom-dark-color', customColorDark);
-        container.style.setProperty('--nt-custom-tricolor-color', customColorTricolor);
-        container.style.setProperty('--nt-tricolor-link-color', tricolorLinkColor);
-        container.style.setProperty('--nt-tricolor-time-color', tricolorTimeColor);
-        container.style.setProperty('--nt-tricolor-source-color', tricolorSourceColor);
+        container.style.setProperty('--mq-custom-light-color', customColorLight);
+        container.style.setProperty('--mq-custom-dark-color', customColorDark);
+        container.style.setProperty('--mq-custom-tricolor-color', customColorTricolor);
+        container.style.setProperty('--mq-tricolor-link-color', tricolorLinkColor);
+        container.style.setProperty('--mq-tricolor-time-color', tricolorTimeColor);
+        container.style.setProperty('--mq-tricolor-source-color', tricolorSourceColor);
     }
 
 
 
     function applyModeClasses() {
         if (!container) return;
-        container.classList.remove('nt-mode-horizontal', 'nt-mode-horizontal-push', 'nt-mode-vertical-push');
-        container.classList.add(`nt-mode-${scrollMode}`);
+        container.classList.remove('mq-mode-horizontal', 'mq-mode-horizontal-push', 'mq-mode-vertical-push');
+        container.classList.add(`mq-mode-${scrollMode}`);
     }
 
     let shiftedElements = [];
@@ -391,9 +391,9 @@
         const enabledFeeds = feeds.filter(f => f.enabled !== false);
         if (enabledFeeds.length === 0) {
             const itemDiv = document.createElement('div');
-            itemDiv.className = 'nt-item';
+            itemDiv.className = 'mq-item';
             const linkSpan = document.createElement('span');
-            linkSpan.className = 'nt-link';
+            linkSpan.className = 'mq-link';
             linkSpan.textContent = 'No active feeds';
             itemDiv.appendChild(linkSpan);
             track.replaceChildren(itemDiv);
@@ -464,9 +464,9 @@
 
             if (allItems.length === 0) {
                 const itemDiv = document.createElement('div');
-                itemDiv.className = 'nt-item';
+                itemDiv.className = 'mq-item';
                 const linkSpan = document.createElement('span');
-                linkSpan.className = 'nt-link';
+                linkSpan.className = 'mq-link';
                 linkSpan.textContent = 'No news found';
                 itemDiv.appendChild(linkSpan);
                 track.replaceChildren(itemDiv);
@@ -482,20 +482,20 @@
                 const isNew = item.pubDateValue > oneHourAgo;
 
                 const itemDiv = document.createElement('div');
-                itemDiv.className = 'nt-item';
+                itemDiv.className = 'mq-item';
 
                 const sourceSpan = document.createElement('span');
-                sourceSpan.className = 'nt-source';
+                sourceSpan.className = 'mq-source';
                 sourceSpan.textContent = `[${item.source}]`;
 
                 const timeSpan = document.createElement('span');
-                timeSpan.className = 'nt-time' + ((blinkNew && isNew) ? ' nt-blink' : '');
+                timeSpan.className = 'mq-time' + ((blinkNew && isNew) ? ' mq-blink' : '');
                 timeSpan.textContent = item.timeStr || '';
 
                 const linkA = document.createElement('a');
                 linkA.href = item.link;
                 linkA.target = '_blank';
-                linkA.className = 'nt-link';
+                linkA.className = 'mq-link';
                 linkA.textContent = item.title;
 
                 itemDiv.append(sourceSpan, ' ', timeSpan, ' ', linkA);
@@ -505,7 +505,7 @@
             if (scrollMode === 'vertical-push' || scrollMode === 'horizontal-push') {
                 const isVertical = scrollMode === 'vertical-push';
                 const blankStart = document.createElement('div');
-                blankStart.className = 'nt-item nt-blank';
+                blankStart.className = 'mq-item mq-blank';
                 if (isVertical) {
                     const barHeight = fontSize + 18;
                     blankStart.style.height = `${barHeight}px`;
@@ -515,7 +515,7 @@
                 fragment.prepend(blankStart);
 
                 const blankEnd = document.createElement('div');
-                blankEnd.className = 'nt-item nt-blank';
+                blankEnd.className = 'mq-item mq-blank';
                 if (isVertical) {
                     const barHeight = fontSize + 18;
                     blankEnd.style.height = `${barHeight}px`;
@@ -553,7 +553,7 @@
                         }
                     }
                     track.style.animationDelay = `-${progress * duration}s`;
-                    track.style.animationName = 'nt-scroll';
+                    track.style.animationName = 'mq-scroll';
                 } else {
                     // Push Mode
                     track.style.animation = 'none';
@@ -706,8 +706,8 @@
         if (changes.newsTickerBarPos) {
             position = changes.newsTickerBarPos.newValue;
             if (container) {
-                container.classList.remove('nt-top', 'nt-bottom');
-                container.classList.add(`nt-${position}`);
+                container.classList.remove('mq-top', 'mq-bottom');
+                container.classList.add(`mq-${position}`);
                 document.documentElement.style.removeProperty('margin-top');
                 document.documentElement.style.removeProperty('margin-bottom');
                 updateBodyPadding();
@@ -925,7 +925,7 @@
             }
             
             // 4. Remove will-change to save GPU memory
-            track.classList.remove('nt-rendering');
+            track.classList.remove('mq-rendering');
         } else {
             // 1. Resume CSS animations
             track.style.animationPlayState = 'running';
@@ -936,7 +936,7 @@
             }
             
             // 3. Re-enable will-change
-            track.classList.add('nt-rendering');
+            track.classList.add('mq-rendering');
         }
     });
 
