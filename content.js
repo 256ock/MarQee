@@ -12,18 +12,18 @@
     let ledBlendMode = 'overlay';
     let fontWeight = 'normal';
     let articleSort = 'chrono';
-    let articleGroup = 'grouped';
+    let articleGroup = 'mixed';
     let blinkNew = true;
     let shiftFixed = false;
     let scrollMode = 'horizontal';
     let verticalPause = 3;
     let fontSize = 14;
     let articleAgeFilterEnabled = false;
-    let articleAgeHours = 24;
+    let articleAgeHours = 12;
     let glassmorphismEnabled = false;
     let glassBlur = 12;
     let glassBrightness = 1.0;
-    let excludedDomains = [];
+    let excludedDomains = ['x.com', 'youtube.com'];
     let domainFilterMode = 'exclude'; // 'exclude' or 'include'
     let customColorLight = '#2563eb';
     let customColorDark = '#3b82f6';
@@ -55,7 +55,7 @@
         
         // Default to true if newsTickerBarVisible is not set
         isVisible = initialData.newsTickerBarVisible !== false;
-        excludedDomains = initialData.newsTickerExcludedDomains || [];
+        excludedDomains = initialData.newsTickerExcludedDomains || ['x.com', 'youtube.com'];
         domainFilterMode = initialData.newsTickerDomainFilterMode || 'exclude';
         
         if (!isVisible) return; // Exit early if not visible
@@ -122,13 +122,13 @@
             ledBlendMode = data.newsTickerLEDBlendMode || 'overlay';
             fontWeight = data.newsTickerFontWeight || 'normal';
             articleSort = data.newsTickerArticleSort || 'chrono';
-            articleGroup = data.newsTickerArticleGroup || 'grouped';
+            articleGroup = data.newsTickerArticleGroup || 'mixed';
             blinkNew = data.newsTickerBlinkNew !== undefined ? data.newsTickerBlinkNew : true;
             shiftFixed = data.newsTickerShiftFixed || false;
             scrollMode = data.newsTickerScrollMode || 'vertical-push';
             verticalPause = data.newsTickerVerticalPause || 5;
             articleAgeFilterEnabled = data.newsTickerAgeFilterEnabled || false;
-            articleAgeHours = data.newsTickerAgeHours || 24;
+            articleAgeHours = data.newsTickerAgeHours || 12;
             visualEffect = data.newsTickerVisualEffect || 'none';
             glassBlur = data.newsTickerGlassmorphismBlur || 12;
             glassBrightness = data.newsTickerGlassBrightness !== undefined ? data.newsTickerGlassBrightness : 1.0;

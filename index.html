@@ -150,7 +150,7 @@
                         <div id="mq-domain-filter-desc" class="mq-setting-desc" style="margin-bottom: 0.25rem;">
                             The ticker will be disabled on these domains (one per line).
                         </div>
-                        <textarea id="mq-excluded-domains-textarea" class="mq-custom-textarea" rows="4" placeholder="www.google.com&#10;example.com" style="width: 100%; box-sizing: border-box;"></textarea>
+                        <textarea id="mq-excluded-domains-textarea" class="mq-custom-textarea" rows="4" placeholder="x.com&#10;youtube.com" style="width: 100%; box-sizing: border-box;"></textarea>
                         <div style="width: 100%; display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.5rem;">
                             <button id="mq-add-current-domain-btn" class="mq-secondary-btn mini">Add Current Domain</button>
                             <button id="mq-save-domains-btn" class="mq-primary-btn mini">Save Domain List</button>
@@ -225,9 +225,9 @@
                             <span class="mq-setting-desc">Show articles from the last X hours</span>
                         </div>
                         <div class="mq-speed-control">
-                            <input type="range" id="mq-article-age-slider" min="1" max="72" step="1" value="24"
+                            <input type="range" id="mq-article-age-slider" min="1" max="72" step="1" value="12"
                                 aria-label="Article age filter hours">
-                            <span id="mq-article-age-value" class="mq-speed-val">24h</span>
+                            <span id="mq-article-age-value" class="mq-speed-val">12h</span>
                         </div>
                     </div>
 
@@ -263,7 +263,7 @@
                         </div>
                         <select id="mq-article-group-select" class="mq-custom-select">
                             <option value="grouped">Group by Source</option>
-                            <option value="mixed">Mixed</option>
+                            <option value="mixed" selected>Mixed</option>
                         </select>
                     </div>
                 </div>

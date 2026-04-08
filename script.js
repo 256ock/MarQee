@@ -37,14 +37,14 @@ let ledGridOpacity = 0.6;
 let ledBlendMode = 'overlay';
 let currentFontWeight = 'normal';
 let articleSortOrder = 'chrono'; // 'chrono', 'random'
-let articleGrouping = 'grouped'; // 'grouped', 'mixed'
+let articleGrouping = 'mixed'; // 'grouped', 'mixed'
 let blinkNewEnabled = true; // default: ON
 let scrollMode = 'vertical-push'; // default: 'vertical-push'
 let verticalPause = 5; // default: 5 seconds
 let currentFontSize = 14; // default: 14px
 let articleAgeFilterEnabled = false;
-let articleAgeHours = 24;
-let excludedDomains = [];
+let articleAgeHours = 12;
+let excludedDomains = ['x.com', 'youtube.com'];
 let domainFilterMode = 'exclude'; // 'exclude' or 'include'
 
 const DEFAULT_COLOR_LIGHT = '#2563eb';
@@ -504,11 +504,11 @@ function updateLEDSettingVisibility() {
 async function loadArticleSettings() {
     const data = await chrome.storage.local.get(['newsTickerArticleSort', 'newsTickerArticleGroup', 'newsTickerBlinkNew', 'newsTickerAgeFilterEnabled', 'newsTickerAgeHours', 'newsTickerExcludedDomains', 'newsTickerDomainFilterMode']);
     articleSortOrder = data.newsTickerArticleSort || 'chrono';
-    articleGrouping = data.newsTickerArticleGroup || 'grouped';
+    articleGrouping = data.newsTickerArticleGroup || 'mixed';
     blinkNewEnabled = data.newsTickerBlinkNew !== undefined ? data.newsTickerBlinkNew : true;
     articleAgeFilterEnabled = data.newsTickerAgeFilterEnabled || false;
-    articleAgeHours = data.newsTickerAgeHours || 24;
-    excludedDomains = data.newsTickerExcludedDomains || [];
+    articleAgeHours = data.newsTickerAgeHours || 12;
+    excludedDomains = data.newsTickerExcludedDomains || ['x.com', 'youtube.com'];
     domainFilterMode = data.newsTickerDomainFilterMode || 'exclude';
 
     if (articleSortSelect) articleSortSelect.value = articleSortOrder;

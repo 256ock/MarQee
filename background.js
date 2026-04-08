@@ -49,6 +49,16 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     if (storage.newsTickerBarVisible === undefined) updates.newsTickerBarVisible = true;
     if (!storage.newsTickerScrollMode) updates.newsTickerScrollMode = 'vertical-push';
     if (storage.newsTickerVerticalPause === undefined) updates.newsTickerVerticalPause = 5;
+    if (!storage.newsTickerExcludedDomains) updates.newsTickerExcludedDomains = ['x.com', 'youtube.com'];
+    if (!storage.newsTickerDomainFilterMode) updates.newsTickerDomainFilterMode = 'exclude';
+    if (!storage.newsTickerFetchInterval) updates.newsTickerFetchInterval = 15;
+    if (storage.newsTickerAgeFilterEnabled === undefined) updates.newsTickerAgeFilterEnabled = false;
+    if (storage.newsTickerAgeHours === undefined) updates.newsTickerAgeHours = 12;
+    if (!storage.newsTickerArticleSort) updates.newsTickerArticleSort = 'chrono';
+    if (storage.newsTickerBlinkNew === undefined) updates.newsTickerBlinkNew = true;
+    if (!storage.newsTickerArticleGroup) updates.newsTickerArticleGroup = 'mixed';
+    if (!storage.newsTickerColorScheme) updates.newsTickerColorScheme = 'system';
+    if (!storage.newsTickerVisualEffect) updates.newsTickerVisualEffect = 'none';
 
     if (Object.keys(updates).length > 0) {
         await chrome.storage.local.set(updates);
