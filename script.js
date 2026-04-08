@@ -924,6 +924,10 @@ function handleSpeedChange(event) {
 
 // 8. Initialize
 async function init() {
+    // Hide the container immediately so settings are applied before the UI is visible
+    appContainer.style.opacity = 0;
+    appContainer.style.transform = 'translateY(20px)';
+
     await loadFeeds();
     await loadSpeed();
     await loadHoverPause();
@@ -1200,15 +1204,12 @@ async function init() {
         });
     });
 
-    // App entrance animation
-    appContainer.style.opacity = 0;
-    appContainer.style.transform = 'translateY(20px)';
-    appContainer.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
-
-    setTimeout(() => {
+    // All settings applied — now fade in
+    appContainer.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+    requestAnimationFrame(() => {
         appContainer.style.opacity = 1;
         appContainer.style.transform = 'translateY(0)';
-    }, 100);
+    });
 }
 
 // Run on load
