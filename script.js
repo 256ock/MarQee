@@ -922,7 +922,215 @@ function handleSpeedChange(event) {
     // Ticker animation speed is now handled by content.js
 }
 
-// 8. Initialize
+// ============================================================
+// 8. Backup & Restore
+// ============================================================
+
+const ALL_SETTINGS_KEYS = [
+    'newsTickerBarVisible', 'newsTickerScrollMode', 'newsTickerVerticalPause',
+    'newsTickerSpeed', 'newsTickerBarPos', 'newsTickerHoverPause',
+    'newsTickerColorScheme', 'newsTickerVisualEffect', 'newsTickerGlassmorphismBlur',
+    'newsTickerGlassBrightness', 'newsTickerLEDOpacity', 'newsTickerLEDBlendMode',
+    'newsTickerFontWeight', 'newsTickerFontSize', 'newsTickerArticleSort',
+    'newsTickerArticleGroup', 'newsTickerBlinkNew', 'newsTickerShiftFixed',
+    'newsTickerFetchInterval', 'newsTickerAgeFilterEnabled', 'newsTickerAgeHours',
+    'newsTickerExcludedDomains', 'newsTickerDomainFilterMode',
+    'newsTickerCustomColorLight', 'newsTickerCustomColorDark',
+    'newsTickerTricolorLink', 'newsTickerTricolorTime', 'newsTickerTricolorSource'
+];
+
+/** エクスポート: フィード + 全設定を1つのJSONファイルとしてダウンロード */
+async function exportData() {
+    const allData = await chrome.storage.local.get([...ALL_SETTINGS_KEYS, 'newsTickerFeeds']);
+
+    const exportObj = {
+        version: '1.0',
+        exportedAt: new Date().toISOString(),
+        feeds: allData.newsTickerFeeds || [],
+        settings: {}
+    };
+
+    ALL_SETTINGS_KEYS.forEach(key => {
+        if (allData[key] !== undefined) {
+            exportObj.settings[key] = allData[key];
+        }
+    });
+
+    const json = JSON.stringify(exportObj, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const date = new Date().toISOString().slice(0, 10);
+    a.href = url;
+    a.download = `marqee-backup-${date}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    showToast('Backup exported!', 'success');
+}
+
+/** インポートファイル選択後 → バリデーションしてダイアログを開く */
+let pendingImportData = null;
+
+function handleImportFileSelected(file) {
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        let data;
+        try {
+            data = JSON.parse(e.target.result);
+        } catch {
+            showToast('Invalid JSON file.', 'error');
+            return;
+        }
+
+        // 最低限のバリデーション
+        if (!data || typeof data !== 'object') {
+            showToast('Unrecognised backup format.', 'error');
+            return;
+        }
+        if (!Array.isArray(data.feeds)) {
+            showToast('No "feeds" array found in file.', 'error');
+            return;
+        }
+
+        pendingImportData = data;
+
+        // ダイアログにメタ情報を表示
+        const validFeeds = data.feeds.filter(f => f && f.url);
+        const feedCount = validFeeds.length;
+        const hasSettings = data.settings && Object.keys(data.settings).length > 0;
+        const exportedDate = data.exportedAt
+            ? new Date(data.exportedAt).toLocaleString()
+            : 'Unknown date';
+
+        const meta = document.getElementById('mq-import-meta');
+        if (meta) {
+            meta.textContent =
+                `${feedCount} feed${feedCount !== 1 ? 's' : ''} · Exported: ${exportedDate}` +
+                (hasSettings ? ' · Includes settings' : ' · Feeds only (no settings in file)');
+        }
+
+        // Settings Only / Full Restore ラジオを設定がない場合は無効化
+        ['settings', 'full'].forEach(val => {
+            const radio = document.querySelector(`#mq-import-dialog input[value="${val}"]`);
+            const option = radio && radio.closest('.mq-import-mode-option');
+            if (!radio || !option) return;
+            if (!hasSettings) {
+                radio.disabled = true;
+                option.style.opacity = '0.45';
+                option.style.cursor = 'not-allowed';
+            } else {
+                radio.disabled = false;
+                option.style.opacity = '';
+                option.style.cursor = '';
+            }
+        });
+        // 設定がない場合は Feeds Only にフォールバック
+        if (!hasSettings) {
+            const feedsRadio = document.querySelector('#mq-import-dialog input[value="feeds"]');
+            if (feedsRadio) feedsRadio.checked = true;
+        }
+
+        const dialog = document.getElementById('mq-import-dialog');
+        if (dialog) dialog.showModal();
+    };
+    reader.readAsText(file);
+}
+
+/** インポート確定: 選択モードに応じてストレージに書き込む */
+async function applyImport(data, mode) {
+    // フィードを復元（feeds / full モード）
+    if (mode === 'feeds' || mode === 'full') {
+        const restoredFeeds = (data.feeds || [])
+            .filter(f => f && f.url && (f.url.startsWith('http://') || f.url.startsWith('https://')))
+            .map((f, i) => ({
+                id: f.id || `feed_${Date.now()}_${i}`,
+                name: f.name || 'Unnamed',
+                url: f.url,
+                enabled: f.enabled !== false
+            }));
+
+        await chrome.storage.local.set({ newsTickerFeeds: restoredFeeds });
+        userFeeds = restoredFeeds;
+        renderSettingsFeedList();
+    }
+
+    // 設定を復元（settings / full モード）
+    if ((mode === 'settings' || mode === 'full') && data.settings) {
+        const toSave = {};
+        ALL_SETTINGS_KEYS.forEach(key => {
+            if (data.settings[key] !== undefined) {
+                toSave[key] = data.settings[key];
+            }
+        });
+        await chrome.storage.local.set(toSave);
+
+        // UI を再ロード
+        await loadSpeed();
+        await loadHoverPause();
+        await loadInterval();
+        await loadStyleSettings();
+        await loadArticleSettings();
+        await loadScrollSettings();
+
+        // ヘッダー部分（barVisible / pos / shiftFixed）を再反映
+        const d = await chrome.storage.local.get(
+            ['newsTickerBarVisible', 'newsTickerBarPos', 'newsTickerShiftFixed']
+        );
+        const tickerBarToggle = document.getElementById('mq-ticker-bar-toggle');
+        if (tickerBarToggle) tickerBarToggle.checked = d.newsTickerBarVisible || false;
+
+        const tickerPosOptions = document.getElementById('mq-ticker-pos-options');
+        if (tickerPosOptions) {
+            const pos = d.newsTickerBarPos || 'top';
+            tickerPosOptions.querySelectorAll('.mq-pos-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.pos === pos);
+            });
+        }
+
+        const shiftFixedToggle = document.getElementById('mq-shift-fixed-toggle');
+        if (shiftFixedToggle) shiftFixedToggle.checked = d.newsTickerShiftFixed || false;
+
+        applyTheme(currentColorScheme);
+    }
+
+    // トースト表示
+    const feedCount = (data.feeds || []).filter(
+        f => f && f.url && (f.url.startsWith('http://') || f.url.startsWith('https://'))
+    ).length;
+    const label = mode === 'full'     ? `Full restore complete (${feedCount} feed${feedCount !== 1 ? 's' : ''})` :
+                  mode === 'settings' ? 'Settings restored' :
+                                        `Feeds restored (${feedCount} feed${feedCount !== 1 ? 's' : ''})`;
+    showToast(label, 'success');
+}
+
+/** トースト通知を表示 */
+function showToast(message, type = 'success') {
+    const existing = document.querySelector('.mq-toast');
+    if (existing) existing.remove();
+
+    const toast = document.createElement('div');
+    toast.className = `mq-toast mq-toast-${type}`;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => toast.classList.add('mq-toast-visible'));
+    });
+
+    setTimeout(() => {
+        toast.classList.remove('mq-toast-visible');
+        setTimeout(() => toast.remove(), 300);
+    }, 2800);
+}
+
+// ============================================================
+// 9. Initialize
+// ============================================================
 async function init() {
     // Hide the container immediately so settings are applied before the UI is visible
     appContainer.style.opacity = 0;
@@ -1181,6 +1389,56 @@ async function init() {
     }
 
     addFeedBtn.addEventListener('click', handleAddFeed);
+
+    // ---- Backup & Restore ----
+    const exportBtn = document.getElementById('mq-export-btn');
+    const importBtn = document.getElementById('mq-import-btn');
+    const importFileInput = document.getElementById('mq-import-file-input');
+    const importDialog = document.getElementById('mq-import-dialog');
+    const importCancelBtn = document.getElementById('mq-import-cancel-btn');
+    const importConfirmBtn = document.getElementById('mq-import-confirm-btn');
+
+    if (exportBtn) {
+        exportBtn.addEventListener('click', exportData);
+    }
+
+    if (importBtn && importFileInput) {
+        importBtn.addEventListener('click', () => {
+            importFileInput.value = ''; // 同じファイルを再選択できるようリセット
+            importFileInput.click();
+        });
+        importFileInput.addEventListener('change', () => {
+            handleImportFileSelected(importFileInput.files[0]);
+        });
+    }
+
+    if (importCancelBtn && importDialog) {
+        importCancelBtn.addEventListener('click', () => {
+            importDialog.close();
+            pendingImportData = null;
+        });
+    }
+
+    if (importConfirmBtn && importDialog) {
+        importConfirmBtn.addEventListener('click', async () => {
+            if (!pendingImportData) return;
+            const selectedMode = document.querySelector('#mq-import-dialog input[name="mq-import-mode"]:checked');
+            const mode = selectedMode ? selectedMode.value : 'feeds';
+            importDialog.close();
+            await applyImport(pendingImportData, mode);
+            pendingImportData = null;
+        });
+    }
+
+    // ダイアログの外側クリックで閉じる
+    if (importDialog) {
+        importDialog.addEventListener('click', (e) => {
+            if (e.target === importDialog) {
+                importDialog.close();
+                pendingImportData = null;
+            }
+        });
+    }
 
     // Tab switching logic
     const tabBtns = document.querySelectorAll('.mq-tab-btn');

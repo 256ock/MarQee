@@ -199,6 +199,30 @@
                         <!-- Feed items will be injected here -->
                     </ul>
                 </div>
+
+                <!-- Backup & Restore -->
+                <div class="mq-settings-section">
+                    <h3>Backup &amp; Restore</h3>
+                    <div class="mq-setting-row">
+                        <div class="mq-setting-label">
+                            <span class="mq-setting-title">Export</span>
+                            <span class="mq-setting-desc">Feeds and settings to a JSON file</span>
+                        </div>
+                        <button id="mq-export-btn" class="mq-secondary-btn mini">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>Export
+                        </button>
+                    </div>
+                    <div class="mq-setting-row">
+                        <div class="mq-setting-label">
+                            <span class="mq-setting-title">Import</span>
+                            <span class="mq-setting-desc">Restore from a previously exported file</span>
+                        </div>
+                        <button id="mq-import-btn" class="mq-secondary-btn mini">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10" transform="rotate(180,12,9)"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>Import
+                        </button>
+                        <input type="file" id="mq-import-file-input" accept=".json" style="display:none;">
+                    </div>
+                </div>
             </div>
 
             <!-- Tab 2: Article Processing -->
@@ -459,6 +483,43 @@
         </div>
     </main>
 
+
+    <!-- Import Backup Dialog -->
+    <dialog id="mq-import-dialog" class="mq-dialog">
+        <div class="mq-dialog-inner">
+            <div class="mq-dialog-header">
+                <h3>Import Backup</h3>
+            </div>
+            <div class="mq-dialog-meta" id="mq-import-meta">Loading…</div>
+            <div class="mq-import-mode-options">
+                <label class="mq-import-mode-option">
+                    <input type="radio" name="mq-import-mode" value="feeds" checked>
+                    <div class="mq-import-mode-content">
+                        <span class="mq-import-mode-title">Feeds Only</span>
+                        <span class="mq-import-mode-desc">Restore the feed list only. Current appearance and general settings remain unchanged.</span>
+                    </div>
+                </label>
+                <label class="mq-import-mode-option">
+                    <input type="radio" name="mq-import-mode" value="settings">
+                    <div class="mq-import-mode-content">
+                        <span class="mq-import-mode-title">Settings Only</span>
+                        <span class="mq-import-mode-desc">Restore appearance and general settings only. Current feed list remains unchanged.</span>
+                    </div>
+                </label>
+                <label class="mq-import-mode-option">
+                    <input type="radio" name="mq-import-mode" value="full">
+                    <div class="mq-import-mode-content">
+                        <span class="mq-import-mode-title">Full Restore</span>
+                        <span class="mq-import-mode-desc">Restore feeds and all appearance / general settings. Current settings will be overwritten.</span>
+                    </div>
+                </label>
+            </div>
+            <div class="mq-dialog-footer">
+                <button id="mq-import-cancel-btn" class="mq-secondary-btn mini">Cancel</button>
+                <button id="mq-import-confirm-btn" class="mq-primary-btn mini">Import</button>
+            </div>
+        </div>
+    </dialog>
 
     <script src="script.js"></script>
 </body>
