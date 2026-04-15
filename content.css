@@ -328,3 +328,18 @@
     opacity: 0.05;
     cursor: default;
 }
+
+/* Loading Indicator */
+.mq-item.mq-loading {
+    justify-content: center;
+    width: 100%;
+    color: var(--mq-time);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    animation: mq-loading-blink 0.8s step-end infinite;
+}
+
+@keyframes mq-loading-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}

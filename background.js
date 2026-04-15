@@ -59,6 +59,7 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     if (!storage.newsTickerArticleGroup) updates.newsTickerArticleGroup = 'mixed';
     if (!storage.newsTickerColorScheme) updates.newsTickerColorScheme = 'system';
     if (!storage.newsTickerVisualEffect) updates.newsTickerVisualEffect = 'none';
+    if (storage.newsTickerShowLoading === undefined) updates.newsTickerShowLoading = true;
 
     if (Object.keys(updates).length > 0) {
         await chrome.storage.local.set(updates);

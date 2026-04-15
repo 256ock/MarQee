@@ -46,6 +46,7 @@ let articleAgeFilterEnabled = false;
 let articleAgeHours = 12;
 let excludedDomains = ['x.com', 'youtube.com'];
 let domainFilterMode = 'exclude'; // 'exclude' or 'include'
+let showLoadingEnabled = true; // default: ON
 
 const DEFAULT_COLOR_LIGHT = '#2563eb';
 const DEFAULT_COLOR_DARK = '#3b82f6';
@@ -113,6 +114,7 @@ const saveDomainsBtn = document.getElementById('mq-save-domains-btn');
 const addCurrentDomainBtn = document.getElementById('mq-add-current-domain-btn');
 const domainFilterModeOptions = document.getElementById('mq-domain-filter-mode-options');
 const domainFilterDesc = document.getElementById('mq-domain-filter-desc');
+const showLoadingToggle = document.getElementById('mq-show-loading-toggle');
 
 const colorLightPicker = document.getElementById('mq-color-light-picker');
 const colorDarkPicker = document.getElementById('mq-color-dark-picker');
@@ -230,6 +232,20 @@ function updateIntervalDisplay(val) {
     if (intervalValueDisplay) {
         intervalValueDisplay.textContent = `${val}m`;
     }
+}
+
+async function loadShowLoading() {
+    const data = await chrome.storage.local.get('newsTickerShowLoading');
+    const saved = data.newsTickerShowLoading;
+    showLoadingEnabled = (saved === null || saved === undefined) ? true : saved;
+    if (showLoadingToggle) {
+        showLoadingToggle.checked = showLoadingEnabled;
+    }
+}
+
+async function saveShowLoading(enabled) {
+    showLoadingEnabled = enabled;
+    await chrome.storage.local.set({ 'newsTickerShowLoading': enabled });
 }
 
 async function loadScrollSettings() {
@@ -936,7 +952,8 @@ const ALL_SETTINGS_KEYS = [
     'newsTickerFetchInterval', 'newsTickerAgeFilterEnabled', 'newsTickerAgeHours',
     'newsTickerExcludedDomains', 'newsTickerDomainFilterMode',
     'newsTickerCustomColorLight', 'newsTickerCustomColorDark',
-    'newsTickerTricolorLink', 'newsTickerTricolorTime', 'newsTickerTricolorSource'
+    'newsTickerTricolorLink', 'newsTickerTricolorTime', 'newsTickerTricolorSource',
+    'newsTickerShowLoading'
 ];
 
 /** エクスポート: フィード + 全設定を1つのJSONファイルとしてダウンロード */
@@ -1143,6 +1160,7 @@ async function init() {
     await loadStyleSettings();
     await loadArticleSettings();
     await loadScrollSettings();
+    await loadShowLoading();
     renderSettingsFeedList();
 
     applyTheme(currentColorScheme);
@@ -1165,6 +1183,12 @@ async function init() {
         });
         intervalSlider.addEventListener('change', (e) => {
             saveInterval(e.target.value);
+        });
+    }
+
+    if (showLoadingToggle) {
+        showLoadingToggle.addEventListener('change', () => {
+            saveShowLoading(showLoadingToggle.checked);
         });
     }
 

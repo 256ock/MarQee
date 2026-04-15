@@ -32,6 +32,7 @@
     let tricolorTimeColor = '#ff4d4d';
     let tricolorSourceColor = '#00ff41';
     let rssIsUpdated = false;
+    let showLoading = true;
 
 
     let currentPushItems = 0;
@@ -108,7 +109,8 @@
                 'newsTickerCustomColorTricolor',
                 'newsTickerTricolorLink',
                 'newsTickerTricolorTime',
-                'newsTickerTricolorSource'
+                'newsTickerTricolorSource',
+                'newsTickerShowLoading'
             ]);
 
             feeds = data.newsTickerFeeds || [];
@@ -138,6 +140,7 @@
             tricolorLinkColor = data.newsTickerTricolorLink || '#ffb000';
             tricolorTimeColor = data.newsTickerTricolorTime || '#ff4d4d';
             tricolorSourceColor = data.newsTickerTricolorSource || '#00ff41';
+            showLoading = data.newsTickerShowLoading !== false;
 
             // Handle case where visualEffect is not yet set but old keys exist
             if (data.newsTickerVisualEffect === undefined) {
@@ -386,7 +389,7 @@
     }
 
     async function loadAndRender() {
-        if (!shadow || !track || feeds.length === 0) return;
+        if (!shadow || !track || feeds.length === 0 || !chrome.runtime?.id) return;
 
         const enabledFeeds = feeds.filter(f => f.enabled !== false);
         if (enabledFeeds.length === 0) {
@@ -398,6 +401,13 @@
             itemDiv.appendChild(linkSpan);
             track.replaceChildren(itemDiv);
             return;
+        }
+
+        if (showLoading) {
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'mq-item mq-loading';
+            loadingDiv.textContent = 'Loading Feeds';
+            track.replaceChildren(loadingDiv);
         }
 
         try {
@@ -863,6 +873,9 @@
                 createTicker().then(() => loadAndRender());
             }
         }
+        if (changes.newsTickerShowLoading) {
+            showLoading = changes.newsTickerShowLoading.newValue;
+        }
     });
 
 
@@ -874,7 +887,7 @@
     });
 
     function saveTickerProgress() {
-        if (!track || !isVisible) return;
+        if (!track || !isVisible || !chrome.runtime?.id) return;
         
         if (scrollMode === 'vertical-push' || scrollMode === 'horizontal-push') {
             chrome.storage.session.set({ newsTickerPushIndex: currentPushIndex });
