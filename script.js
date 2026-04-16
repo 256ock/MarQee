@@ -1414,6 +1414,83 @@ async function init() {
 
     addFeedBtn.addEventListener('click', handleAddFeed);
 
+    function looksLikeRss(url) {
+        try {
+            const lowerUrl = url.toLowerCase();
+            const lowerPath = new URL(url).pathname.toLowerCase();
+            return (
+                lowerPath.endsWith('.xml') ||
+                lowerPath.endsWith('.rss') ||
+                lowerPath.endsWith('.atom') ||
+                /\/(rss|feed|feeds|atom)(\/|$|\?)/.test(lowerUrl)
+            );
+        } catch {
+            return false;
+        }
+    }
+
+    // Current Tab button in feed form
+    const useCurrentTabBtn = document.getElementById('mq-use-current-tab-btn');
+    if (useCurrentTabBtn) {
+        useCurrentTabBtn.style.display = 'none';
+        useCurrentTabBtn.addEventListener('click', async () => {
+            const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+            if (tab?.url && looksLikeRss(tab.url)) {
+                newFeedUrlInput.value = tab.url;
+                newFeedUrlInput.focus();
+            }
+        });
+    }
+
+    // RSS Quick Add banner
+    const quickAddBanner = document.getElementById('mq-rss-quick-add');
+    const quickAddLabel = document.getElementById('mq-rss-quick-add-label');
+    const quickAddBtn = document.getElementById('mq-rss-quick-add-btn');
+
+    chrome.tabs.query({ active: true, currentWindow: true }).then(([tab]) => {
+        if (!tab?.url || !looksLikeRss(tab.url)) return;
+
+        // Show both banner and Current Tab button
+        if (quickAddBanner) quickAddBanner.style.display = 'flex';
+        if (useCurrentTabBtn) useCurrentTabBtn.style.display = '';
+
+        if (quickAddLabel) {
+            try {
+                quickAddLabel.textContent = new URL(tab.url).hostname + new URL(tab.url).pathname;
+            } catch {
+                quickAddLabel.textContent = tab.url;
+            }
+        }
+
+        if (quickAddBtn) {
+            quickAddBtn.addEventListener('click', async () => {
+                const [t] = await chrome.tabs.query({ active: true, currentWindow: true });
+                if (!t?.url) return;
+
+                const feedName = t.title || new URL(t.url).hostname;
+                const feedUrl = t.url;
+
+                if (userFeeds.some(f => f.url === feedUrl)) {
+                    quickAddBtn.textContent = 'Already Added';
+                    setTimeout(() => { quickAddBtn.textContent = '+ Add Feed'; }, 2000);
+                    return;
+                }
+
+                userFeeds.push({ id: 'feed_' + Date.now(), name: feedName, url: feedUrl, enabled: true });
+                saveFeeds();
+
+                quickAddBtn.textContent = 'Added!';
+                quickAddBtn.disabled = true;
+                setTimeout(() => {
+                    quickAddBtn.textContent = '+ Add Feed';
+                    quickAddBtn.disabled = false;
+                }, 2000);
+
+                renderSettingsFeedList();
+            });
+        }
+    });
+
     // ---- Backup & Restore ----
     const exportBtn = document.getElementById('mq-export-btn');
     const importBtn = document.getElementById('mq-import-btn');

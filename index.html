@@ -32,6 +32,12 @@
             </div>
         </div>
 
+        <div id="mq-rss-quick-add" class="mq-rss-quick-add" style="display: none;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="mq-rss-quick-add-icon"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg>
+            <span id="mq-rss-quick-add-label" class="mq-rss-quick-add-label"></span>
+            <button id="mq-rss-quick-add-btn" class="mq-primary-btn mini">+ Add Feed</button>
+        </div>
+
         <div class="mq-settings-layout">
             <div class="mq-tabs-nav vertical">
                 <button class="mq-tab-btn active" data-tab="tab-scroll">
@@ -199,6 +205,7 @@
                     </div>
                     <div class="mq-form-actions">
                         <button id="mq-add-feed-btn" class="mq-primary-btn">Add</button>
+                        <button id="mq-use-current-tab-btn" class="mq-secondary-btn" type="button" title="Import URL from current tab if it's an RSS feed">Current Tab</button>
                         <button id="mq-cancel-edit-btn" class="mq-secondary-btn" style="display: none;">Cancel</button>
                     </div>
                 </div>

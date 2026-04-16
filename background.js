@@ -41,7 +41,18 @@ chrome.runtime.onInstalled.addListener(async (details) => {
         'newsTickerFeeds',
         'newsTickerBarVisible',
         'newsTickerScrollMode',
-        'newsTickerVerticalPause'
+        'newsTickerVerticalPause',
+        'newsTickerExcludedDomains',
+        'newsTickerDomainFilterMode',
+        'newsTickerFetchInterval',
+        'newsTickerAgeFilterEnabled',
+        'newsTickerAgeHours',
+        'newsTickerArticleSort',
+        'newsTickerBlinkNew',
+        'newsTickerArticleGroup',
+        'newsTickerColorScheme',
+        'newsTickerVisualEffect',
+        'newsTickerShowLoading'
     ]);
 
     const updates = {};
