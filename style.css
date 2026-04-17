@@ -172,8 +172,15 @@ body {
 }
 
 @keyframes mq-quick-add-in {
-    from { opacity: 0; transform: translateY(-4px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .mq-rss-quick-add-icon {
@@ -503,7 +510,8 @@ body {
     flex-direction: column;
     gap: 0.5rem;
     margin-bottom: 1.25rem;
-    padding: 0 0.75rem; /* Match section padding */
+    padding: 0 0.75rem;
+    /* Match section padding */
 }
 
 .mq-form-group label {
@@ -582,7 +590,8 @@ body {
     justify-content: flex-end;
     gap: 0.75rem;
     margin-top: 1rem;
-    padding: 0 0.75rem 0.75rem 0.75rem; /* Match section padding */
+    padding: 0 0.75rem 0.75rem 0.75rem;
+    /* Match section padding */
 }
 
 /* Feed List Styles */
@@ -590,7 +599,8 @@ body {
     background: var(--mq-bg-secondary);
     border: 1px solid var(--mq-border-color);
     border-radius: 16px;
-    padding: 0; /* Align with standard mq-settings-section behavior */
+    padding: 0;
+    /* Align with standard mq-settings-section behavior */
     margin-bottom: 1.5rem;
 }
 
@@ -988,6 +998,7 @@ body {
     font-size: 0.8rem;
     opacity: 0.9;
 }
+
 /* ==========================================================================
    Backup & Restore – Dialog
    ========================================================================== */
