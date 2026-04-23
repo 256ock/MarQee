@@ -349,7 +349,7 @@
 
     function updateBodyPadding() {
         unshiftFixedElements();
-        if (isVisible) {
+        if (isVisible && !shouldHideOnCurrentDomain()) {
             if (position === 'top') {
                 document.documentElement.style.setProperty('margin-top', `${barHeight()}px`, 'important');
                 // Allow DOM to settle before shifting fixed elements
@@ -716,7 +716,7 @@
 
         if (changes.newsTickerBarVisible) {
             isVisible = changes.newsTickerBarVisible.newValue;
-            if (isVisible) {
+            if (isVisible && !shouldHideOnCurrentDomain()) {
                 createTicker().then(() => loadAndRender());
             } else {
                 removeTicker();
