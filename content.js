@@ -63,21 +63,20 @@
             'newsTickerExcludedDomains',
             'newsTickerDomainFilterMode'
         ]);
-        
+
         // Default to true if newsTickerBarVisible is not set
         isVisible = initialData.newsTickerBarVisible !== false;
         excludedDomains = initialData.newsTickerExcludedDomains || ['x.com', 'youtube.com'];
         domainFilterMode = initialData.newsTickerDomainFilterMode || 'exclude';
-        
-        if (!isVisible) return; // Exit early if not visible
-        if (shouldHideOnCurrentDomain()) return;
 
-        // 2. Fetch fontSize immediately for layout shift prevention
+        // 2. Fetch fontSize immediately for layout shift prevention (if visible)
         const fontData = await chrome.storage.local.get('newsTickerFontSize');
         fontSize = fontData.newsTickerFontSize || 14;
-        updateBodyPadding();
+        if (isVisible) updateBodyPadding();
 
         // 3. Defer non-critical initialization to idle periods
+        // Always load all settings so the storage change listener works correctly
+        // even if the bar was hidden at startup (feeds must be populated before toggle-on)
         const idleCallback = window.requestIdleCallback || ((cb) => setTimeout(cb, 1000));
         idleCallback(async () => {
             const data = await chrome.storage.local.get([
@@ -143,6 +142,10 @@
                 if (data.newsTickerLEDStyle) visualEffect = 'led';
                 else if (data.newsTickerGlassmorphism) visualEffect = 'glass';
             }
+
+            // Skip rendering if bar is hidden or domain-filtered
+            // (settings are still loaded above so toggle-on works without reload)
+            if (!isVisible || shouldHideOnCurrentDomain()) return;
 
             // Wait for document.body to be available before injecting the ticker
             if (document.body) {
