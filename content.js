@@ -2,7 +2,6 @@
 (function () {
     let feeds = [];
     let speed = 1.0;
-    let activeFeedId = null;
     let isVisible = false;
     let position = 'top';
     let hoverPause = true;
@@ -20,7 +19,6 @@
     let fontSize = 14;
     let articleAgeFilterEnabled = false;
     let articleAgeHours = 12;
-    let glassmorphismEnabled = false;
     let glassBlur = 12;
     let glassBrightness = 1.0;
     let excludedDomains = ['x.com', 'youtube.com'];
@@ -39,12 +37,24 @@
     let container = null;
     let track = null;
     let shadow = null;
-    let styleElement = null;
     let pushInterval = null;
     let currentPushIndex = 0;
     let navButtonsEl = null;
     let navUpBtn = null;
     let navDownBtn = null;
+
+    const BAR_PADDING = 18;
+    const barHeight = () => fontSize + BAR_PADDING;
+    const isPushMode = () => scrollMode === 'vertical-push' || scrollMode === 'horizontal-push';
+
+    function shouldHideOnCurrentDomain() {
+        const hostname = window.location.hostname;
+        const matchesDomain = excludedDomains.some(d => hostname === d || hostname.endsWith('.' + d));
+        if (domainFilterMode === 'include') {
+            return excludedDomains.length > 0 && !matchesDomain;
+        }
+        return matchesDomain;
+    }
 
     async function init() {
         // 1. Initial fetch for early return check
@@ -60,20 +70,7 @@
         domainFilterMode = initialData.newsTickerDomainFilterMode || 'exclude';
         
         if (!isVisible) return; // Exit early if not visible
-
-        const hostname = window.location.hostname;
-        const matchesDomain = excludedDomains.some(domain => 
-            hostname === domain || 
-            hostname.endsWith('.' + domain)
-        );
-
-        if (domainFilterMode === 'include') {
-            // Include mode: only show on listed domains
-            if (excludedDomains.length > 0 && !matchesDomain) return;
-        } else {
-            // Exclude mode: hide on listed domains
-            if (matchesDomain) return;
-        }
+        if (shouldHideOnCurrentDomain()) return;
 
         // 2. Fetch fontSize immediately for layout shift prevention
         const fontData = await chrome.storage.local.get('newsTickerFontSize');
@@ -119,7 +116,6 @@
             hoverPause = data.newsTickerHoverPause !== undefined ? data.newsTickerHoverPause : true;
             colorScheme = data.newsTickerColorScheme || 'system';
             if (colorScheme === 'default') colorScheme = 'system';
-            ledStyle = data.newsTickerLEDStyle || false;
             ledOpacity = data.newsTickerLEDOpacity !== undefined ? data.newsTickerLEDOpacity : 0.6;
             ledBlendMode = data.newsTickerLEDBlendMode || 'overlay';
             fontWeight = data.newsTickerFontWeight || 'normal';
@@ -148,10 +144,6 @@
                 else if (data.newsTickerGlassmorphism) visualEffect = 'glass';
             }
 
-            if (feeds.length > 0) {
-                activeFeedId = feeds[0].id;
-            }
-            
             // Wait for document.body to be available before injecting the ticker
             if (document.body) {
                 await createTicker();
@@ -306,9 +298,8 @@
         }
 
         // Apply font size and height
-        const barHeight = fontSize + 18;
         container.style.setProperty('--mq-font-size', `${fontSize}px`);
-        container.style.setProperty('--mq-height', `${barHeight}px`);
+        container.style.setProperty('--mq-height', `${barHeight()}px`);
         container.style.setProperty('--mq-glass-blur', `${glassBlur}px`);
         container.style.setProperty('--mq-glass-brightness', glassBrightness);
 
@@ -340,8 +331,7 @@
 
             const style = window.getComputedStyle(el);
             if ((style.position === 'fixed' || style.position === 'sticky') && style.top === '0px') {
-                const barHeight = fontSize + 18;
-                el.style.setProperty('transform', `translateY(${barHeight}px)`, 'important');
+                el.style.setProperty('transform', `translateY(${barHeight()}px)`, 'important');
                 shiftedElements.push(el);
             }
         });
@@ -356,14 +346,13 @@
 
     function updateBodyPadding() {
         unshiftFixedElements();
-        const barHeight = fontSize + 18;
         if (isVisible) {
             if (position === 'top') {
-                document.documentElement.style.setProperty('margin-top', `${barHeight}px`, 'important');
+                document.documentElement.style.setProperty('margin-top', `${barHeight()}px`, 'important');
                 // Allow DOM to settle before shifting fixed elements
                 setTimeout(shiftFixedElements, 100);
             } else {
-                document.documentElement.style.setProperty('margin-bottom', `${barHeight}px`, 'important');
+                document.documentElement.style.setProperty('margin-bottom', `${barHeight()}px`, 'important');
             }
         } else {
             document.documentElement.style.removeProperty('margin-top');
@@ -379,7 +368,6 @@
             container = null;
             track = null;
             shadow = null;
-            styleElement = null;
             navButtonsEl = null;
             navUpBtn = null;
             navDownBtn = null;
@@ -512,30 +500,20 @@
                 fragment.appendChild(itemDiv);
             });
 
-            if (scrollMode === 'vertical-push' || scrollMode === 'horizontal-push') {
+            if (isPushMode()) {
                 const isVertical = scrollMode === 'vertical-push';
-                const blankStart = document.createElement('div');
-                blankStart.className = 'mq-item mq-blank';
-                if (isVertical) {
-                    const barHeight = fontSize + 18;
-                    blankStart.style.height = `${barHeight}px`;
-                } else {
-                    blankStart.style.width = '100vw';
-                }
-                fragment.prepend(blankStart);
-
-                const blankEnd = document.createElement('div');
-                blankEnd.className = 'mq-item mq-blank';
-                if (isVertical) {
-                    const barHeight = fontSize + 18;
-                    blankEnd.style.height = `${barHeight}px`;
-                } else {
-                    blankEnd.style.width = '100vw';
-                }
-                fragment.appendChild(blankEnd);
+                const makeBlank = () => {
+                    const el = document.createElement('div');
+                    el.className = 'mq-item mq-blank';
+                    if (isVertical) el.style.height = `${barHeight()}px`;
+                    else el.style.width = '100vw';
+                    return el;
+                };
+                fragment.prepend(makeBlank());
+                fragment.appendChild(makeBlank());
             }
 
-            currentPushItems = (scrollMode === 'vertical-push' || scrollMode === 'horizontal-push') ? itemsToRender.length + 2 : itemsToRender.length;
+            currentPushItems = isPushMode() ? itemsToRender.length + 2 : itemsToRender.length;
             track.replaceChildren(fragment);
 
             function applyScroll() {
@@ -576,12 +554,7 @@
                     
                     // Disable transition temporarily to prevent "catch-up" jump
                     track.style.transition = 'none';
-                    if (scrollMode === 'vertical-push') {
-                        const barHeight = fontSize + 18;
-                        track.style.transform = `translateY(-${currentPushIndex * barHeight}px)`;
-                    } else {
-                        track.style.transform = `translateX(-${currentPushIndex * 100}vw)`;
-                    }
+                    applyPushTransform();
                     // Force reflow
                     track.offsetHeight;
                     track.style.transition = '';
@@ -622,12 +595,7 @@
                             
                             startPushAnimation(); 
                         } else {
-                            if (scrollMode === 'vertical-push') {
-                                const barHeight = fontSize + 18;
-                                track.style.transform = `translateY(-${currentPushIndex * barHeight}px)`;
-                            } else {
-                                track.style.transform = `translateX(-${currentPushIndex * 100}vw)`;
-                            }
+                            applyPushTransform();
                             updateNavButtons();
                             tick();
                         }
@@ -650,25 +618,29 @@
 
     function updateNavButtons() {
         if (!navUpBtn || !navDownBtn) return;
-        if (scrollMode !== 'vertical-push' && scrollMode !== 'horizontal-push') return;
+        if (!isPushMode()) return;
         // In push mode, index 0 = blank start, articles are 1..N, index N+1 = blank end
         navUpBtn.disabled = (currentPushIndex <= 1);
         navDownBtn.disabled = (currentPushIndex >= currentPushItems - 2);
     }
 
+    function applyPushTransform() {
+        if (!track) return;
+        if (scrollMode === 'vertical-push') {
+            track.style.transform = `translateY(-${currentPushIndex * barHeight()}px)`;
+        } else {
+            track.style.transform = `translateX(-${currentPushIndex * 100}vw)`;
+        }
+    }
+
     function navigatePush(direction) {
-        if ((scrollMode !== 'vertical-push' && scrollMode !== 'horizontal-push') || !track) return;
+        if (!isPushMode() || !track) return;
         const newIndex = currentPushIndex + direction;
         // Clamp: articles are at indices 1..(currentPushItems - 2)
         if (newIndex < 1 || newIndex > currentPushItems - 2) return;
 
         currentPushIndex = newIndex;
-        if (scrollMode === 'vertical-push') {
-            const barHeight = fontSize + 18;
-            track.style.transform = `translateY(-${currentPushIndex * barHeight}px)`;
-        } else {
-            track.style.transform = `translateX(-${currentPushIndex * 100}vw)`;
-        }
+        applyPushTransform();
         updateNavButtons();
 
         // Reset auto-advance timer
@@ -694,17 +666,51 @@
         return array;
     }
 
-    // Listen for changes
+    // Dispatch table: storage key -> { assign to local, optional side-effect }
+    // `reload` means reload feed list. `style` re-applies style classes.
+    const SETTING_HANDLERS = {
+        newsTickerFontWeight:         { set: v => fontWeight = v,              effect: 'style' },
+        newsTickerColorScheme:        { set: v => colorScheme = v,             effect: 'style' },
+        newsTickerLEDOpacity:         { set: v => ledOpacity = v,              effect: 'style' },
+        newsTickerLEDBlendMode:       { set: v => ledBlendMode = v,            effect: 'style' },
+        newsTickerVisualEffect:       { set: v => visualEffect = v,            effect: 'style' },
+        newsTickerGlassmorphismBlur:  { set: v => glassBlur = v,               effect: 'style' },
+        newsTickerGlassBrightness:    { set: v => glassBrightness = v,         effect: 'style' },
+        newsTickerCustomColorLight:   { set: v => customColorLight = v,        effect: 'style' },
+        newsTickerCustomColorDark:    { set: v => customColorDark = v,         effect: 'style' },
+        newsTickerCustomColorTricolor:{ set: v => customColorTricolor = v,     effect: 'style' },
+        newsTickerTricolorLink:       { set: v => tricolorLinkColor = v,       effect: 'style' },
+        newsTickerTricolorTime:       { set: v => tricolorTimeColor = v,       effect: 'style' },
+        newsTickerTricolorSource:     { set: v => tricolorSourceColor = v,     effect: 'style' },
+        newsTickerArticleSort:        { set: v => articleSort = v,             effect: 'reload' },
+        newsTickerArticleGroup:       { set: v => articleGroup = v,            effect: 'reload' },
+        newsTickerBlinkNew:           { set: v => blinkNew = v,                effect: 'reload' },
+        newsTickerAgeFilterEnabled:   { set: v => articleAgeFilterEnabled = v, effect: 'reload' },
+        newsTickerHoverPause:         { set: v => hoverPause = v, effect: () => applyHoverPauseClass() },
+        newsTickerShowLoading:        { set: v => showLoading = v },
+        newsTickerShiftFixed:         { set: v => shiftFixed = v, effect: () => updateBodyPadding() },
+        newsTickerAgeHours:           { set: v => articleAgeHours = v, effect: () => articleAgeFilterEnabled && loadAndRender() },
+        newsTickerVerticalPause:      { set: v => verticalPause = v,           effect: () => isPushMode() && loadAndRender() },
+    };
+
     chrome.storage.onChanged.addListener((changes) => {
-        if (changes.newsTickerShiftFixed) {
-            shiftFixed = changes.newsTickerShiftFixed.newValue;
-            updateBodyPadding();
+        let needsStyle = false, needsReload = false;
+
+        for (const [key, change] of Object.entries(changes)) {
+            const handler = SETTING_HANDLERS[key];
+            if (!handler) continue;
+            handler.set(change.newValue);
+            if (handler.effect === 'style') needsStyle = true;
+            else if (handler.effect === 'reload') needsReload = true;
+            else if (typeof handler.effect === 'function') handler.effect();
         }
+
         if (changes.newsTickerFeeds) {
             feeds = changes.newsTickerFeeds.newValue || [];
             chrome.storage.session.remove(['newsTickerShuffleSeed', 'newsTickerProgress', 'newsTickerVerticalIndex']);
-            loadAndRender();
+            needsReload = true;
         }
+
         if (changes.newsTickerBarVisible) {
             isVisible = changes.newsTickerBarVisible.newValue;
             if (isVisible) {
@@ -712,7 +718,9 @@
             } else {
                 removeTicker();
             }
+            return; // createTicker handles subsequent render; avoid double loadAndRender
         }
+
         if (changes.newsTickerBarPos) {
             position = changes.newsTickerBarPos.newValue;
             if (container) {
@@ -723,131 +731,25 @@
                 updateBodyPadding();
             }
         }
+
         if (changes.newsTickerSpeed) {
             speed = changes.newsTickerSpeed.newValue;
-            if (track && track.offsetWidth > 0) {
-                const computedStyle = window.getComputedStyle(track);
-                const currentDuration = parseFloat(computedStyle.animationDuration);
-                const currentDelay = parseFloat(computedStyle.animationDelay) || 0;
+            applySpeedChange();
+        }
 
-                // Calculate current progress (0.0 to 1.0)
-                let progress = 0;
-                if (currentDuration > 0) {
-                    progress = (Math.abs(currentDelay) / currentDuration) % 1;
-                }
-
-                // Update duration with new speed
-                const newDuration = (track.offsetWidth / 50) / speed;
-                track.style.animationDuration = `${newDuration}s`;
-                track.style.animationTimingFunction = 'linear';
-                track.style.animationIterationCount = 'infinite';
-
-                // Set new animation delay to maintain same progress
-                track.style.animationDelay = `-${progress * newDuration}s`;
-            }
-        }
-        if (changes.newsTickerHoverPause) {
-            hoverPause = changes.newsTickerHoverPause.newValue;
-            applyHoverPauseClass();
-        }
-        if (changes.newsTickerColorScheme) {
-            colorScheme = changes.newsTickerColorScheme.newValue;
-            applyStyleClasses();
-        }
-        if (changes.newsTickerLEDStyle) {
-            ledStyle = changes.newsTickerLEDStyle.newValue;
-            applyStyleClasses();
-        }
-        if (changes.newsTickerLEDOpacity) {
-            ledOpacity = changes.newsTickerLEDOpacity.newValue;
-            applyStyleClasses();
-        }
-        if (changes.newsTickerLEDBlendMode) {
-            ledBlendMode = changes.newsTickerLEDBlendMode.newValue;
-            applyStyleClasses();
-        }
-        if (changes.newsTickerFontWeight) {
-            fontWeight = changes.newsTickerFontWeight.newValue;
-            applyStyleClasses();
-        }
-        if (changes.newsTickerArticleSort) {
-            articleSort = changes.newsTickerArticleSort.newValue;
-            loadAndRender();
-        }
-        if (changes.newsTickerArticleGroup) {
-            articleGroup = changes.newsTickerArticleGroup.newValue;
-            loadAndRender();
-        }
-        if (changes.newsTickerBlinkNew) {
-            blinkNew = changes.newsTickerBlinkNew.newValue;
-            loadAndRender();
-        }
         if (changes.newsTickerScrollMode) {
             scrollMode = changes.newsTickerScrollMode.newValue;
             if (container) {
                 applyModeClasses();
-                loadAndRender();
+                needsReload = true;
             }
         }
-        if (changes.newsTickerVerticalPause) {
-            verticalPause = changes.newsTickerVerticalPause.newValue;
-            if (scrollMode === 'vertical-push' || scrollMode === 'horizontal-push') {
-                loadAndRender();
-            }
-        }
+
         if (changes.newsTickerFontSize) {
             fontSize = changes.newsTickerFontSize.newValue;
-            applyStyleClasses();
+            needsStyle = true;
             updateBodyPadding();
-            if (scrollMode === 'vertical-push' || scrollMode === 'horizontal-push') {
-                loadAndRender();
-            }
-        }
-        if (changes.newsTickerAgeFilterEnabled) {
-            articleAgeFilterEnabled = changes.newsTickerAgeFilterEnabled.newValue;
-            loadAndRender();
-        }
-        if (changes.newsTickerAgeHours) {
-            articleAgeHours = changes.newsTickerAgeHours.newValue;
-            if (articleAgeFilterEnabled) {
-                loadAndRender();
-            }
-        }
-        if (changes.newsTickerVisualEffect) {
-            visualEffect = changes.newsTickerVisualEffect.newValue;
-            applyStyleClasses();
-        }
-        if (changes.newsTickerGlassmorphismBlur) {
-            glassBlur = changes.newsTickerGlassmorphismBlur.newValue;
-            applyStyleClasses();
-        }
-        if (changes.newsTickerGlassBrightness) {
-            glassBrightness = changes.newsTickerGlassBrightness.newValue;
-            applyStyleClasses();
-        }
-        if (changes.newsTickerCustomColorLight) {
-            customColorLight = changes.newsTickerCustomColorLight.newValue;
-            applyStyleClasses();
-        }
-        if (changes.newsTickerCustomColorDark) {
-            customColorDark = changes.newsTickerCustomColorDark.newValue;
-            applyStyleClasses();
-        }
-        if (changes.newsTickerCustomColorTricolor) {
-            customColorTricolor = changes.newsTickerCustomColorTricolor.newValue;
-            applyStyleClasses();
-        }
-        if (changes.newsTickerTricolorLink) {
-            tricolorLinkColor = changes.newsTickerTricolorLink.newValue;
-            applyStyleClasses();
-        }
-        if (changes.newsTickerTricolorTime) {
-            tricolorTimeColor = changes.newsTickerTricolorTime.newValue;
-            applyStyleClasses();
-        }
-        if (changes.newsTickerTricolorSource) {
-            tricolorSourceColor = changes.newsTickerTricolorSource.newValue;
-            applyStyleClasses();
+            if (isPushMode()) needsReload = true;
         }
 
         if (changes.newsTickerExcludedDomains || changes.newsTickerDomainFilterMode) {
@@ -857,26 +759,33 @@
             if (changes.newsTickerDomainFilterMode) {
                 domainFilterMode = changes.newsTickerDomainFilterMode.newValue || 'exclude';
             }
-            const hostname = window.location.hostname;
-            const matchesDomain = excludedDomains.some(domain => hostname === domain || hostname.endsWith('.' + domain));
-            
-            let shouldHide = false;
-            if (domainFilterMode === 'include') {
-                shouldHide = excludedDomains.length > 0 && !matchesDomain;
-            } else {
-                shouldHide = matchesDomain;
-            }
-
-            if (shouldHide) {
+            if (shouldHideOnCurrentDomain()) {
                 removeTicker();
             } else if (isVisible && feeds.length > 0 && !container) {
                 createTicker().then(() => loadAndRender());
             }
         }
-        if (changes.newsTickerShowLoading) {
-            showLoading = changes.newsTickerShowLoading.newValue;
-        }
+
+        if (needsStyle) applyStyleClasses();
+        if (needsReload) loadAndRender();
     });
+
+    function applySpeedChange() {
+        if (!track || track.offsetWidth <= 0) return;
+        const computed = window.getComputedStyle(track);
+        const currentDuration = parseFloat(computed.animationDuration);
+        const currentDelay = parseFloat(computed.animationDelay) || 0;
+
+        const progress = currentDuration > 0
+            ? (Math.abs(currentDelay) / currentDuration) % 1
+            : 0;
+
+        const newDuration = (track.offsetWidth / 50) / speed;
+        track.style.animationDuration = `${newDuration}s`;
+        track.style.animationTimingFunction = 'linear';
+        track.style.animationIterationCount = 'infinite';
+        track.style.animationDelay = `-${progress * newDuration}s`;
+    }
 
 
 
@@ -888,36 +797,26 @@
 
     function saveTickerProgress() {
         if (!track || !isVisible || !chrome.runtime?.id) return;
-        
-        if (scrollMode === 'vertical-push' || scrollMode === 'horizontal-push') {
+
+        if (isPushMode()) {
             chrome.storage.session.set({ newsTickerPushIndex: currentPushIndex });
             return;
         }
 
-        if (scrollMode === 'horizontal') {
-            const computedStyle = window.getComputedStyle(track);
-            const transform = computedStyle.getPropertyValue('transform');
-            if (transform && transform !== 'none') {
-                const matrixValues = transform.match(/matrix.*\((.+)\)/);
-                if (matrixValues) {
-                    const parts = matrixValues[1].split(', ');
-                    const x = parseFloat(parts[4]);
-                    if (!isNaN(x) && track.offsetWidth > 0) {
-                        let progress = Math.abs(x) / track.offsetWidth;
-                        chrome.storage.session.set({
-                            newsTickerProgress: progress,
-                            newsTickerTimestamp: Date.now()
-                        });
-                    }
-                }
-            }
-        } else {
-            // Vertical Push Mode
-            chrome.storage.session.set({
-                newsTickerVerticalIndex: currentVerticalIndex,
-                newsTickerTimestamp: Date.now()
-            });
-        }
+        // Horizontal mode — save scroll progress as a fraction.
+        const transform = window.getComputedStyle(track).getPropertyValue('transform');
+        if (!transform || transform === 'none') return;
+
+        const matrixValues = transform.match(/matrix.*\((.+)\)/);
+        if (!matrixValues) return;
+
+        const x = parseFloat(matrixValues[1].split(', ')[4]);
+        if (isNaN(x) || track.offsetWidth <= 0) return;
+
+        chrome.storage.session.set({
+            newsTickerProgress: Math.abs(x) / track.offsetWidth,
+            newsTickerTimestamp: Date.now()
+        });
     }
 
     window.addEventListener('pagehide', saveTickerProgress);
@@ -944,7 +843,7 @@
             track.style.animationPlayState = 'running';
             
             // 2. Restart JS timer if in push mode
-            if (scrollMode === 'vertical-push' || scrollMode === 'horizontal-push') {
+            if (isPushMode()) {
                 startPushAnimation_ref();
             }
             

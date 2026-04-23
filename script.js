@@ -1,28 +1,9 @@
 /**
  * Premium News Ticker Application Logic (RSS Version)
+ *
+ * Shared defaults (DEFAULT_FEEDS, DEFAULT_SETTINGS, ALL_SETTINGS_KEYS) are loaded
+ * via defaults.js before this file. See index.html.
  */
-
-// 1. Default Feeds & State Management
-const DEFAULT_FEEDS = [
-    {
-        id: 'feed_1',
-        name: 'BBC World',
-        url: 'http://feeds.bbci.co.uk/news/world/rss.xml',
-        enabled: true
-    },
-    {
-        id: 'feed_2',
-        name: 'TechCrunch',
-        url: 'https://techcrunch.com/feed/',
-        enabled: true
-    },
-    {
-        id: 'feed_3',
-        name: 'NASA',
-        url: 'https://www.nasa.gov/rss/dyn/breaking_news.rss',
-        enabled: true
-    }
-];
 
 let userFeeds = [];
 let activeFeedId = null;
@@ -444,30 +425,34 @@ function updateLEDOpacityDisplay(val) {
     }
 }
 
+const CUSTOM_COLOR_MAP = {
+    light:    'newsTickerCustomColorLight',
+    dark:     'newsTickerCustomColorDark',
+    tricolor: 'newsTickerCustomColorTricolor'
+};
+
+const TRICOLOR_MAP = {
+    link:   'newsTickerTricolorLink',
+    time:   'newsTickerTricolorTime',
+    source: 'newsTickerTricolorSource'
+};
+
 async function saveCustomColor(type, color) {
-    if (type === 'light') {
-        customColorLight = color;
-        await chrome.storage.local.set({ 'newsTickerCustomColorLight': color });
-    } else if (type === 'dark') {
-        customColorDark = color;
-        await chrome.storage.local.set({ 'newsTickerCustomColorDark': color });
-    } else if (type === 'tricolor') {
-        customColorTricolor = color;
-        await chrome.storage.local.set({ 'newsTickerCustomColorTricolor': color });
-    }
+    const key = CUSTOM_COLOR_MAP[type];
+    if (!key) return;
+    if (type === 'light') customColorLight = color;
+    else if (type === 'dark') customColorDark = color;
+    else if (type === 'tricolor') customColorTricolor = color;
+    await chrome.storage.local.set({ [key]: color });
 }
 
 async function saveTricolorColor(type, color) {
-    if (type === 'link') {
-        tricolorLinkColor = color;
-        await chrome.storage.local.set({ 'newsTickerTricolorLink': color });
-    } else if (type === 'time') {
-        tricolorTimeColor = color;
-        await chrome.storage.local.set({ 'newsTickerTricolorTime': color });
-    } else if (type === 'source') {
-        tricolorSourceColor = color;
-        await chrome.storage.local.set({ 'newsTickerTricolorSource': color });
-    }
+    const key = TRICOLOR_MAP[type];
+    if (!key) return;
+    if (type === 'link') tricolorLinkColor = color;
+    else if (type === 'time') tricolorTimeColor = color;
+    else if (type === 'source') tricolorSourceColor = color;
+    await chrome.storage.local.set({ [key]: color });
 }
 
 function updateCustomColorVisibility() {
@@ -548,16 +533,7 @@ async function saveExcludedDomains() {
         'newsTickerDomainFilterMode': domainFilterMode
     });
 
-    // Pulse animation on button to show save success
-    if (saveDomainsBtn) {
-        const originalText = saveDomainsBtn.textContent;
-        saveDomainsBtn.textContent = 'Saved!';
-        saveDomainsBtn.style.background = 'var(--live-red)';
-        setTimeout(() => {
-            saveDomainsBtn.textContent = originalText;
-            saveDomainsBtn.style.background = '';
-        }, 2000);
-    }
+    flashButton(saveDomainsBtn, 'Saved!', { bg: 'var(--live-red)' });
 }
 
 async function saveDomainFilterMode(mode) {
@@ -602,28 +578,9 @@ async function handleAddCurrentDomain() {
             excludedDomains.push(domain);
             updateExcludedDomainsUI();
             await chrome.storage.local.set({ 'newsTickerExcludedDomains': excludedDomains });
-
-            // Visual feedback
-            if (addCurrentDomainBtn) {
-                const originalText = addCurrentDomainBtn.textContent;
-                addCurrentDomainBtn.textContent = 'Added!';
-                addCurrentDomainBtn.style.background = 'var(--live-red)';
-                addCurrentDomainBtn.style.color = 'white';
-                setTimeout(() => {
-                    addCurrentDomainBtn.textContent = originalText;
-                    addCurrentDomainBtn.style.background = '';
-                    addCurrentDomainBtn.style.color = '';
-                }, 2000);
-            }
+            flashButton(addCurrentDomainBtn, 'Added!', { bg: 'var(--live-red)', color: 'white' });
         } else {
-            // Already added feedback
-            if (addCurrentDomainBtn) {
-                const originalText = addCurrentDomainBtn.textContent;
-                addCurrentDomainBtn.textContent = 'Already Added';
-                setTimeout(() => {
-                    addCurrentDomainBtn.textContent = originalText;
-                }, 2000);
-            }
+            flashButton(addCurrentDomainBtn, 'Already Added');
         }
     } catch (error) {
         console.error('Error adding current domain:', error);
@@ -932,6 +889,20 @@ function escapeHTML(str) {
     );
 }
 
+/** Briefly change a button's label (and optionally its bg/color), then restore. */
+function flashButton(btn, text, { bg = '', color = '', ms = 2000 } = {}) {
+    if (!btn) return;
+    const orig = { text: btn.textContent, bg: btn.style.background, color: btn.style.color };
+    btn.textContent = text;
+    if (bg) btn.style.background = bg;
+    if (color) btn.style.color = color;
+    setTimeout(() => {
+        btn.textContent = orig.text;
+        btn.style.background = orig.bg;
+        btn.style.color = orig.color;
+    }, ms);
+}
+
 function handleSpeedChange(event) {
     const newSpeed = event.target.value;
     saveSpeed(newSpeed);
@@ -941,20 +912,6 @@ function handleSpeedChange(event) {
 // ============================================================
 // 8. Backup & Restore
 // ============================================================
-
-const ALL_SETTINGS_KEYS = [
-    'newsTickerBarVisible', 'newsTickerScrollMode', 'newsTickerVerticalPause',
-    'newsTickerSpeed', 'newsTickerBarPos', 'newsTickerHoverPause',
-    'newsTickerColorScheme', 'newsTickerVisualEffect', 'newsTickerGlassmorphismBlur',
-    'newsTickerGlassBrightness', 'newsTickerLEDOpacity', 'newsTickerLEDBlendMode',
-    'newsTickerFontWeight', 'newsTickerFontSize', 'newsTickerArticleSort',
-    'newsTickerArticleGroup', 'newsTickerBlinkNew', 'newsTickerShiftFixed',
-    'newsTickerFetchInterval', 'newsTickerAgeFilterEnabled', 'newsTickerAgeHours',
-    'newsTickerExcludedDomains', 'newsTickerDomainFilterMode',
-    'newsTickerCustomColorLight', 'newsTickerCustomColorDark',
-    'newsTickerTricolorLink', 'newsTickerTricolorTime', 'newsTickerTricolorSource',
-    'newsTickerShowLoading'
-];
 
 /** エクスポート: フィード + 全設定を1つのJSONファイルとしてダウンロード */
 async function exportData() {
