@@ -30,6 +30,7 @@ const DEFAULT_SETTINGS = {
     // Colors
     newsTickerCustomColorLight: '#2563eb',
     newsTickerCustomColorDark: '#3b82f6',
+    newsTickerCustomColorTricolor: '#ff4d4d',
     newsTickerTricolorLink: '#ffb000',
     newsTickerTricolorTime: '#ff4d4d',
     newsTickerTricolorSource: '#00ff41',

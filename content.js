@@ -56,91 +56,64 @@
         return matchesDomain;
     }
 
+    const EARLY_DEFAULTS = {
+        newsTickerBarVisible:      DEFAULT_SETTINGS.newsTickerBarVisible,
+        newsTickerExcludedDomains: DEFAULT_SETTINGS.newsTickerExcludedDomains,
+        newsTickerDomainFilterMode:DEFAULT_SETTINGS.newsTickerDomainFilterMode,
+        newsTickerFontSize:        DEFAULT_SETTINGS.newsTickerFontSize
+    };
+
     async function init() {
-        // 1. Initial fetch for early return check
-        const initialData = await chrome.storage.local.get([
-            'newsTickerBarVisible',
-            'newsTickerExcludedDomains',
-            'newsTickerDomainFilterMode'
-        ]);
-
-        // Default to true if newsTickerBarVisible is not set
-        isVisible = initialData.newsTickerBarVisible !== false;
-        excludedDomains = initialData.newsTickerExcludedDomains || ['x.com', 'youtube.com'];
-        domainFilterMode = initialData.newsTickerDomainFilterMode || 'exclude';
-
-        // 2. Fetch fontSize immediately for layout shift prevention (if visible)
-        const fontData = await chrome.storage.local.get('newsTickerFontSize');
-        fontSize = fontData.newsTickerFontSize || 14;
+        // 1. Early load for layout-shift prevention (BarVisible / FontSize / domain gates)
+        const initialData = await chrome.storage.local.get(EARLY_DEFAULTS);
+        isVisible        = initialData.newsTickerBarVisible;
+        excludedDomains  = initialData.newsTickerExcludedDomains;
+        domainFilterMode = initialData.newsTickerDomainFilterMode;
+        fontSize         = initialData.newsTickerFontSize;
         if (isVisible) updateBodyPadding();
 
-        // 3. Defer non-critical initialization to idle periods
-        // Always load all settings so the storage change listener works correctly
-        // even if the bar was hidden at startup (feeds must be populated before toggle-on)
+        // 2. Defer the rest to idle. Always load full settings so the change listener
+        //    works correctly even if the bar was hidden at startup.
         const idleCallback = window.requestIdleCallback || ((cb) => setTimeout(cb, 1000));
         idleCallback(async () => {
-            const data = await chrome.storage.local.get([
-                'newsTickerFeeds',
-                'newsTickerSpeed',
-                'newsTickerBarPos',
-                'newsTickerHoverPause',
-                'newsTickerColorScheme',
-                'newsTickerLEDStyle',
-                'newsTickerLEDOpacity',
-                'newsTickerLEDBlendMode',
-                'newsTickerFontWeight',
-                'newsTickerArticleSort',
-                'newsTickerArticleGroup',
-                'newsTickerBlinkNew',
-                'newsTickerShiftFixed',
-                'newsTickerScrollMode',
-                'newsTickerVerticalPause',
-                'newsTickerAgeFilterEnabled',
-                'newsTickerAgeHours',
-                'newsTickerVisualEffect',
-                'newsTickerGlassmorphismBlur',
-                'newsTickerGlassBrightness',
-                'newsTickerCustomColorLight',
-                'newsTickerCustomColorDark',
-                'newsTickerCustomColorTricolor',
-                'newsTickerTricolorLink',
-                'newsTickerTricolorTime',
-                'newsTickerTricolorSource',
-                'newsTickerShowLoading'
+            // Two parallel gets: defaults form for normal settings, raw form for
+            // legacy migration check (need undefined-detection for visualEffect).
+            const [data, legacy] = await Promise.all([
+                chrome.storage.local.get({ ...DEFAULT_SETTINGS, newsTickerFeeds: [] }),
+                chrome.storage.local.get(['newsTickerVisualEffect', 'newsTickerLEDStyle', 'newsTickerGlassmorphism'])
             ]);
 
-            feeds = data.newsTickerFeeds || [];
-            speed = data.newsTickerSpeed || 1.0;
-            position = data.newsTickerBarPos || 'top';
-            hoverPause = data.newsTickerHoverPause !== undefined ? data.newsTickerHoverPause : true;
-            colorScheme = data.newsTickerColorScheme || 'system';
-            if (colorScheme === 'default') colorScheme = 'system';
-            ledOpacity = data.newsTickerLEDOpacity !== undefined ? data.newsTickerLEDOpacity : 0.6;
-            ledBlendMode = data.newsTickerLEDBlendMode || 'overlay';
-            fontWeight = data.newsTickerFontWeight || 'normal';
-            articleSort = data.newsTickerArticleSort || 'chrono';
-            articleGroup = data.newsTickerArticleGroup || 'mixed';
-            blinkNew = data.newsTickerBlinkNew !== undefined ? data.newsTickerBlinkNew : true;
-            shiftFixed = data.newsTickerShiftFixed || false;
-            scrollMode = data.newsTickerScrollMode || 'vertical-push';
-            verticalPause = data.newsTickerVerticalPause || 5;
-            articleAgeFilterEnabled = data.newsTickerAgeFilterEnabled || false;
-            articleAgeHours = data.newsTickerAgeHours || 12;
-            visualEffect = data.newsTickerVisualEffect || 'none';
-            glassBlur = data.newsTickerGlassmorphismBlur || 12;
-            glassBrightness = data.newsTickerGlassBrightness !== undefined ? data.newsTickerGlassBrightness : 1.0;
-            customColorLight = data.newsTickerCustomColorLight || '#2563eb';
-            customColorDark = data.newsTickerCustomColorDark || '#3b82f6';
-            customColorTricolor = data.newsTickerCustomColorTricolor || '#ff4d4d';
-            tricolorLinkColor = data.newsTickerTricolorLink || '#ffb000';
-            tricolorTimeColor = data.newsTickerTricolorTime || '#ff4d4d';
-            tricolorSourceColor = data.newsTickerTricolorSource || '#00ff41';
-            showLoading = data.newsTickerShowLoading !== false;
+            feeds                   = data.newsTickerFeeds;
+            speed                   = data.newsTickerSpeed;
+            position                = data.newsTickerBarPos;
+            hoverPause              = data.newsTickerHoverPause;
+            colorScheme             = data.newsTickerColorScheme === 'default' ? 'system' : data.newsTickerColorScheme;
+            ledOpacity              = data.newsTickerLEDOpacity;
+            ledBlendMode            = data.newsTickerLEDBlendMode;
+            fontWeight              = data.newsTickerFontWeight;
+            articleSort             = data.newsTickerArticleSort;
+            articleGroup            = data.newsTickerArticleGroup;
+            blinkNew                = data.newsTickerBlinkNew;
+            shiftFixed              = data.newsTickerShiftFixed;
+            scrollMode              = data.newsTickerScrollMode;
+            verticalPause           = data.newsTickerVerticalPause;
+            articleAgeFilterEnabled = data.newsTickerAgeFilterEnabled;
+            articleAgeHours         = data.newsTickerAgeHours;
+            visualEffect            = data.newsTickerVisualEffect;
+            glassBlur               = data.newsTickerGlassmorphismBlur;
+            glassBrightness         = data.newsTickerGlassBrightness;
+            customColorLight        = data.newsTickerCustomColorLight;
+            customColorDark         = data.newsTickerCustomColorDark;
+            customColorTricolor     = data.newsTickerCustomColorTricolor;
+            tricolorLinkColor       = data.newsTickerTricolorLink;
+            tricolorTimeColor       = data.newsTickerTricolorTime;
+            tricolorSourceColor     = data.newsTickerTricolorSource;
+            showLoading             = data.newsTickerShowLoading;
 
-            // Handle case where visualEffect is not yet set but old keys exist
-            if (data.newsTickerVisualEffect === undefined) {
-                if (data.newsTickerLEDStyle) visualEffect = 'led';
-                else if (data.newsTickerGlassmorphism) visualEffect = 'glass';
+            // Legacy migration: visualEffect key never set → infer from old LED/Glass keys
+            if (legacy.newsTickerVisualEffect === undefined) {
+                if (legacy.newsTickerLEDStyle) visualEffect = 'led';
+                else if (legacy.newsTickerGlassmorphism) visualEffect = 'glass';
             }
 
             // Skip rendering if bar is hidden or domain-filtered
@@ -390,18 +363,23 @@
         }
     }
 
+    function showStatusMessage(text) {
+        if (!track) return;
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'mq-item';
+        const linkSpan = document.createElement('span');
+        linkSpan.className = 'mq-link';
+        linkSpan.textContent = text;
+        itemDiv.appendChild(linkSpan);
+        track.replaceChildren(itemDiv);
+    }
+
     async function loadAndRender() {
         if (!shadow || !track || feeds.length === 0 || !chrome.runtime?.id) return;
 
         const enabledFeeds = feeds.filter(f => f.enabled !== false);
         if (enabledFeeds.length === 0) {
-            const itemDiv = document.createElement('div');
-            itemDiv.className = 'mq-item';
-            const linkSpan = document.createElement('span');
-            linkSpan.className = 'mq-link';
-            linkSpan.textContent = 'No active feeds';
-            itemDiv.appendChild(linkSpan);
-            track.replaceChildren(itemDiv);
+            showStatusMessage('No active feeds');
             return;
         }
 
@@ -475,13 +453,7 @@
             }
 
             if (allItems.length === 0) {
-                const itemDiv = document.createElement('div');
-                itemDiv.className = 'mq-item';
-                const linkSpan = document.createElement('span');
-                linkSpan.className = 'mq-link';
-                linkSpan.textContent = 'No news found';
-                itemDiv.appendChild(linkSpan);
-                track.replaceChildren(itemDiv);
+                showStatusMessage('No news found');
                 return;
             }
 
@@ -705,6 +677,14 @@
         newsTickerShiftFixed:         { set: v => shiftFixed = v, effect: () => updateBodyPadding() },
         newsTickerAgeHours:           { set: v => articleAgeHours = v, effect: () => articleAgeFilterEnabled && loadAndRender() },
         newsTickerVerticalPause:      { set: v => verticalPause = v,           effect: () => isPushMode() && loadAndRender() },
+        newsTickerSpeed:              { set: v => speed = v,                   effect: () => applySpeedChange() },
+        newsTickerFeeds: {
+            set: v => {
+                feeds = v || [];
+                chrome.storage.session.remove(['newsTickerShuffleSeed', 'newsTickerProgress', 'newsTickerVerticalIndex']);
+            },
+            effect: 'reload'
+        },
     };
 
     chrome.storage.onChanged.addListener((changes) => {
@@ -717,12 +697,6 @@
             if (handler.effect === 'style') needsStyle = true;
             else if (handler.effect === 'reload') needsReload = true;
             else if (typeof handler.effect === 'function') handler.effect();
-        }
-
-        if (changes.newsTickerFeeds) {
-            feeds = changes.newsTickerFeeds.newValue || [];
-            chrome.storage.session.remove(['newsTickerShuffleSeed', 'newsTickerProgress', 'newsTickerVerticalIndex']);
-            needsReload = true;
         }
 
         if (changes.newsTickerBarVisible) {
@@ -744,11 +718,6 @@
                 document.documentElement.style.removeProperty('margin-bottom');
                 updateBodyPadding();
             }
-        }
-
-        if (changes.newsTickerSpeed) {
-            speed = changes.newsTickerSpeed.newValue;
-            applySpeedChange();
         }
 
         if (changes.newsTickerScrollMode) {
