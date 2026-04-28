@@ -324,6 +324,7 @@
     }
 
     let shiftedElements = [];
+    let originalTransforms = new WeakMap();
 
     function shiftFixedElements() {
         if (!shiftFixed || position !== 'top') return;
@@ -331,10 +332,14 @@
         const elements = document.querySelectorAll('body > *, header, nav, .fixed, .sticky, [class*="header"], [id*="header"]');
         elements.forEach(el => {
             if (el === container || el === document.body || el === document.documentElement) return;
+            if (shiftedElements.includes(el)) return;
 
             const style = window.getComputedStyle(el);
             if ((style.position === 'fixed' || style.position === 'sticky') && style.top === '0px') {
-                el.style.setProperty('transform', `translateY(${barHeight()}px)`, 'important');
+                const base = el.style.transform.replace(/translateY\([^)]*\)/g, '').trim();
+                originalTransforms.set(el, base);
+                const shifted = base ? `${base} translateY(${barHeight()}px)` : `translateY(${barHeight()}px)`;
+                el.style.setProperty('transform', shifted, 'important');
                 shiftedElements.push(el);
             }
         });
@@ -342,7 +347,13 @@
 
     function unshiftFixedElements() {
         shiftedElements.forEach(el => {
-            el.style.removeProperty('transform');
+            const base = originalTransforms.get(el);
+            if (base) {
+                el.style.setProperty('transform', base, 'important');
+            } else {
+                el.style.removeProperty('transform');
+            }
+            originalTransforms.delete(el);
         });
         shiftedElements = [];
     }
