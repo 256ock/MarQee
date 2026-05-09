@@ -118,13 +118,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             const items = parseRSS(text);
             rssDataCache.set(url, { items, timestamp: now });
 
-            // If it was within interval but memory cache was missing (SW restart),
-            // we don't treat it as a "reset" update.
-            const shouldReset = !withinInterval;
-            if (shouldReset) {
-                await chrome.storage.session.set({ [sessionKey]: now });
-            }
+            // Always update lastFetch when we actually hit the network.
+            // (SW idle restarts clear rssDataCache but leave session storage intact;
+            //  without this update the interval would never advance after a SW restart.)
+            await chrome.storage.session.set({ [sessionKey]: now });
 
+            // Only signal content script to reset the ticker when the interval truly elapsed.
+            const shouldReset = !withinInterval;
             sendResponse({ success: true, data: items, isUpdated: shouldReset });
         } catch (error) {
             sendResponse({ success: false, error: error.message });
