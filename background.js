@@ -72,9 +72,11 @@ chrome.storage.onChanged.addListener((changes, area) => {
         // Clear in-memory cache
         rssDataCache.clear();
 
-        // Clear session storage fetch timestamps
+        // Clear session storage: fetch timestamps AND cached item arrays
         chrome.storage.session.get(null).then(allData => {
-            const keysToRemove = Object.keys(allData).filter(key => key.startsWith('lastFetch_'));
+            const keysToRemove = Object.keys(allData).filter(key =>
+                key.startsWith('lastFetch_') || key.startsWith('rssItems_')
+            );
             if (keysToRemove.length > 0) {
                 chrome.storage.session.remove(keysToRemove);
             }
@@ -103,6 +105,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             if (withinInterval && rssDataCache.has(url)) {
                 const cached = rssDataCache.get(url);
                 if (now - cached.timestamp < CACHE_TTL) {
+                    // Refresh session item cache so content scripts on new pages render instantly
+                    chrome.storage.session.set({ [`rssItems_${url}`]: cached.items });
                     sendResponse({ success: true, data: cached.items, isUpdated: false });
                     return;
                 }
@@ -118,10 +122,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             const items = parseRSS(text);
             rssDataCache.set(url, { items, timestamp: now });
 
-            // Always update lastFetch when we actually hit the network.
-            // (SW idle restarts clear rssDataCache but leave session storage intact;
-            //  without this update the interval would never advance after a SW restart.)
-            await chrome.storage.session.set({ [sessionKey]: now });
+            // Persist both the fetch timestamp and the parsed items.
+            // rssItems_* lets content scripts on new pages render instantly without Loading.
+            await chrome.storage.session.set({
+                [sessionKey]: now,
+                [`rssItems_${url}`]: items
+            });
 
             // Only signal content script to reset the ticker when the interval truly elapsed.
             const shouldReset = !withinInterval;

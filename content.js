@@ -374,6 +374,197 @@
         track.replaceChildren(itemDiv);
     }
 
+    // Render a pre-resolved array of { items, feedName } results.
+    // forceReset: true when the fetch interval elapsed and we want to restart scroll position.
+    async function renderFeedResults(results, forceReset) {
+        if (!shadow || !track) return;
+
+        // Restore scroll-position state from session storage
+        const state = await chrome.storage.session.get(['newsTickerProgress', 'newsTickerTimestamp', 'newsTickerShuffleSeed', 'newsTickerPushIndex']);
+        let shuffleSeed = state.newsTickerShuffleSeed;
+
+        if (forceReset || shuffleSeed === undefined) {
+            shuffleSeed = Math.floor(Math.random() * 2147483647);
+            chrome.storage.session.set({ newsTickerShuffleSeed: shuffleSeed });
+        }
+
+        // Apply sorting and grouping
+        let allItems = [];
+
+        if (articleGroup === 'grouped') {
+            results.forEach(res => {
+                let items = res.items;
+                if (articleSort === 'chrono') {
+                    items.sort((a, b) => (b.pubDateValue || 0) - (a.pubDateValue || 0));
+                } else if (articleSort === 'random') {
+                    items = shuffleArray([...items], shuffleSeed);
+                }
+                items.forEach(item => item.source = res.feedName);
+                allItems = allItems.concat(items);
+            });
+        } else {
+            // Mixed
+            results.forEach(res => {
+                res.items.forEach(item => item.source = res.feedName);
+                allItems = allItems.concat(res.items);
+            });
+
+            if (articleSort === 'chrono') {
+                allItems.sort((a, b) => (b.pubDateValue || 0) - (a.pubDateValue || 0));
+            } else if (articleSort === 'random') {
+                allItems = shuffleArray(allItems, shuffleSeed);
+            }
+        }
+
+        // Apply article age filter
+        if (articleAgeFilterEnabled) {
+            const cutoff = Date.now() - (articleAgeHours * 60 * 60 * 1000);
+            allItems = allItems.filter(item => item.pubDateValue && item.pubDateValue >= cutoff);
+        }
+
+        if (allItems.length === 0) {
+            showStatusMessage('No news found');
+            return;
+        }
+
+        const oneHourAgo = Date.now() - (60 * 60 * 1000);
+        const fragment = document.createDocumentFragment();
+        const itemsToRender = allItems;
+
+        itemsToRender.forEach(item => {
+            const isNew = item.pubDateValue > oneHourAgo;
+
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'mq-item';
+
+            const sourceSpan = document.createElement('span');
+            sourceSpan.className = 'mq-source';
+            sourceSpan.textContent = `[${item.source}]`;
+
+            const timeSpan = document.createElement('span');
+            timeSpan.className = 'mq-time' + ((blinkNew && isNew) ? ' mq-blink' : '');
+            timeSpan.textContent = item.timeStr || '';
+
+            const linkA = document.createElement('a');
+            linkA.href = item.link;
+            linkA.target = '_blank';
+            linkA.className = 'mq-link';
+            linkA.textContent = item.title;
+
+            itemDiv.append(sourceSpan, ' ', timeSpan, ' ', linkA);
+            fragment.appendChild(itemDiv);
+        });
+
+        if (isPushMode()) {
+            const isVertical = scrollMode === 'vertical-push';
+            const makeBlank = () => {
+                const el = document.createElement('div');
+                el.className = 'mq-item mq-blank';
+                if (isVertical) el.style.height = `${barHeight()}px`;
+                else el.style.width = '100vw';
+                return el;
+            };
+            fragment.prepend(makeBlank());
+            fragment.appendChild(makeBlank());
+        }
+
+        currentPushItems = isPushMode() ? itemsToRender.length + 2 : itemsToRender.length;
+        track.replaceChildren(fragment);
+
+        function applyScroll() {
+            if (!track) return;
+
+            if (scrollMode === 'horizontal') {
+                const width = track.offsetWidth;
+                if (width === 0) {
+                    requestAnimationFrame(applyScroll);
+                    return;
+                }
+
+                const duration = (width / 50) / speed;
+                track.style.animationDuration = `${duration}s`;
+                track.style.animationTimingFunction = 'linear';
+                track.style.animationIterationCount = 'infinite';
+
+                let progress = 0;
+                if (!forceReset) {
+                    progress = state.newsTickerProgress || 0;
+                    if (state.newsTickerTimestamp) {
+                        const elapsedSeconds = (Date.now() - state.newsTickerTimestamp) / 1000;
+                        progress += elapsedSeconds / duration;
+                        progress = progress % 1;
+                    }
+                }
+                track.style.animationDelay = `-${progress * duration}s`;
+                track.style.animationName = 'mq-scroll';
+            } else {
+                // Push Mode
+                track.style.animation = 'none';
+                if (forceReset) {
+                    currentPushIndex = 0;
+                } else {
+                    currentPushIndex = state.newsTickerPushIndex || 0;
+                }
+                if (currentPushIndex >= (currentPushItems || 1)) currentPushIndex = 0;
+
+                // Disable transition temporarily to prevent "catch-up" jump
+                track.style.transition = 'none';
+                applyPushTransform();
+                // Force reflow
+                track.offsetHeight;
+                track.style.transition = '';
+
+                startPushAnimation();
+
+                if (forceReset) {
+                    chrome.storage.session.remove(['newsTickerProgress', 'newsTickerTimestamp', 'newsTickerPushIndex']);
+                }
+            }
+        }
+
+        function startPushAnimation() {
+            if (pushInterval) clearTimeout(pushInterval);
+            if (currentPushItems <= 1) return;
+            startPushAnimation_ref = startPushAnimation;
+
+            const totalItems = currentPushItems;
+
+            function tick() {
+                pushInterval = setTimeout(() => {
+                    // Check if mouse is hovering and pause is enabled
+                    if (hoverPause && container && container.matches(':hover')) {
+                        tick();
+                        return;
+                    }
+
+                    currentPushIndex++;
+                    if (currentPushIndex >= totalItems) {
+                        // Reset instantly
+                        track.style.transition = 'none';
+                        currentPushIndex = 0;
+                        track.style.transform = (scrollMode === 'vertical-push') ? `translateY(0)` : `translateX(0)`;
+                        // Force reflow
+                        track.offsetHeight;
+                        track.style.transition = '';
+                        updateNavButtons();
+
+                        startPushAnimation();
+                    } else {
+                        applyPushTransform();
+                        updateNavButtons();
+                        tick();
+                    }
+                }, (currentPushIndex === 0) ? 50 : (currentPushIndex === totalItems - 1) ? 500 : verticalPause * 1000);
+            }
+
+            tick();
+        }
+
+        applyScroll();
+        updateNavButtons();
+        rssIsUpdated = false;
+    }
+
     async function loadAndRender() {
         if (!shadow || !track || feeds.length === 0 || !chrome.runtime?.id) return;
 
@@ -383,24 +574,35 @@
             return;
         }
 
-        if (showLoading) {
+        // Check session item cache: if all feeds have cached items, render instantly without Loading.
+        // background.js writes rssItems_<url> to session storage after every successful fetch,
+        // so this survives SW idle restarts and page navigations within the configured interval.
+        const cacheKeys = enabledFeeds.map(f => `rssItems_${f.url}`);
+        const sessionItems = await chrome.storage.session.get(cacheKeys);
+        const hasCachedData = enabledFeeds.every(f => Array.isArray(sessionItems[`rssItems_${f.url}`]));
+
+        if (hasCachedData) {
+            // Render immediately — no Loading indicator
+            const cachedResults = enabledFeeds.map(f => ({
+                items: sessionItems[`rssItems_${f.url}`],
+                feedName: f.name
+            }));
+            await renderFeedResults(cachedResults, false);
+        } else if (showLoading) {
             const loadingDiv = document.createElement('div');
             loadingDiv.className = 'mq-item mq-loading';
             loadingDiv.textContent = 'Loading Feeds';
             track.replaceChildren(loadingDiv);
         }
 
+        // Fetch from SW in the background (respects interval / memory-cache logic)
         try {
-            // Fetch all enabled feeds in parallel
             const fetchPromises = enabledFeeds.map(feed =>
                 chrome.runtime.sendMessage({ action: 'fetchRSS', url: feed.url })
                     .then(response => {
                         if (response && response.success) {
                             if (response.isUpdated) rssIsUpdated = true;
-                            return {
-                                items: response.data || [],
-                                feedName: feed.name
-                            };
+                            return { items: response.data || [], feedName: feed.name };
                         }
                         return { items: [], feedName: feed.name };
                     })
@@ -408,195 +610,13 @@
 
             const results = await Promise.all(fetchPromises);
 
-            // Restore state from session storage
-            const state = await chrome.storage.session.get(['newsTickerProgress', 'newsTickerTimestamp', 'newsTickerShuffleSeed', 'newsTickerPushIndex']);
-            let shuffleSeed = state.newsTickerShuffleSeed;
-
-            // Generate new seed if RSS updated or seed missing
-            if (rssIsUpdated || shuffleSeed === undefined) {
-                shuffleSeed = Math.floor(Math.random() * 2147483647);
-                chrome.storage.session.set({ newsTickerShuffleSeed: shuffleSeed });
+            // Re-render only when the interval elapsed (genuine new data) or there was no cache
+            if (rssIsUpdated || !hasCachedData) {
+                await renderFeedResults(results, rssIsUpdated);
             }
-
-            // Apply sorting and grouping
-            let allItems = [];
-
-            if (articleGroup === 'grouped') {
-                results.forEach(res => {
-                    let items = res.items;
-                    if (articleSort === 'chrono') {
-                        items.sort((a, b) => (b.pubDateValue || 0) - (a.pubDateValue || 0));
-                    } else if (articleSort === 'random') {
-                        items = shuffleArray([...items], shuffleSeed);
-                    }
-                    items.forEach(item => item.source = res.feedName);
-                    allItems = allItems.concat(items);
-                });
-            } else {
-                // Mixed
-                results.forEach(res => {
-                    res.items.forEach(item => item.source = res.feedName);
-                    allItems = allItems.concat(res.items);
-                });
-
-                if (articleSort === 'chrono') {
-                    allItems.sort((a, b) => (b.pubDateValue || 0) - (a.pubDateValue || 0));
-                } else if (articleSort === 'random') {
-                    allItems = shuffleArray(allItems, shuffleSeed);
-                }
-            }
-
-            // Apply article age filter
-            if (articleAgeFilterEnabled) {
-                const cutoff = Date.now() - (articleAgeHours * 60 * 60 * 1000);
-                allItems = allItems.filter(item => item.pubDateValue && item.pubDateValue >= cutoff);
-            }
-
-            if (allItems.length === 0) {
-                showStatusMessage('No news found');
-                return;
-            }
-
-            const oneHourAgo = Date.now() - (60 * 60 * 1000);
-            const fragment = document.createDocumentFragment();
-
-            const itemsToRender = allItems;
-
-            itemsToRender.forEach(item => {
-                const isNew = item.pubDateValue > oneHourAgo;
-
-                const itemDiv = document.createElement('div');
-                itemDiv.className = 'mq-item';
-
-                const sourceSpan = document.createElement('span');
-                sourceSpan.className = 'mq-source';
-                sourceSpan.textContent = `[${item.source}]`;
-
-                const timeSpan = document.createElement('span');
-                timeSpan.className = 'mq-time' + ((blinkNew && isNew) ? ' mq-blink' : '');
-                timeSpan.textContent = item.timeStr || '';
-
-                const linkA = document.createElement('a');
-                linkA.href = item.link;
-                linkA.target = '_blank';
-                linkA.className = 'mq-link';
-                linkA.textContent = item.title;
-
-                itemDiv.append(sourceSpan, ' ', timeSpan, ' ', linkA);
-                fragment.appendChild(itemDiv);
-            });
-
-            if (isPushMode()) {
-                const isVertical = scrollMode === 'vertical-push';
-                const makeBlank = () => {
-                    const el = document.createElement('div');
-                    el.className = 'mq-item mq-blank';
-                    if (isVertical) el.style.height = `${barHeight()}px`;
-                    else el.style.width = '100vw';
-                    return el;
-                };
-                fragment.prepend(makeBlank());
-                fragment.appendChild(makeBlank());
-            }
-
-            currentPushItems = isPushMode() ? itemsToRender.length + 2 : itemsToRender.length;
-            track.replaceChildren(fragment);
-
-            function applyScroll() {
-                if (!track) return;
-
-                if (scrollMode === 'horizontal') {
-                    const width = track.offsetWidth;
-                    if (width === 0) {
-                        requestAnimationFrame(applyScroll);
-                        return;
-                    }
-
-                    const duration = (width / 50) / speed;
-                    track.style.animationDuration = `${duration}s`;
-                    track.style.animationTimingFunction = 'linear';
-                    track.style.animationIterationCount = 'infinite';
-
-                    let progress = 0;
-                    if (!rssIsUpdated) {
-                        progress = state.newsTickerProgress || 0;
-                        if (state.newsTickerTimestamp) {
-                            const elapsedSeconds = (Date.now() - state.newsTickerTimestamp) / 1000;
-                            progress += elapsedSeconds / duration;
-                            progress = progress % 1;
-                        }
-                    }
-                    track.style.animationDelay = `-${progress * duration}s`;
-                    track.style.animationName = 'mq-scroll';
-                } else {
-                    // Push Mode
-                    track.style.animation = 'none';
-                    if (rssIsUpdated) {
-                        currentPushIndex = 0;
-                    } else {
-                        currentPushIndex = state.newsTickerPushIndex || 0;
-                    }
-                    if (currentPushIndex >= (currentPushItems || 1)) currentPushIndex = 0;
-                    
-                    // Disable transition temporarily to prevent "catch-up" jump
-                    track.style.transition = 'none';
-                    applyPushTransform();
-                    // Force reflow
-                    track.offsetHeight;
-                    track.style.transition = '';
-                    
-                    startPushAnimation();
-
-                    if (rssIsUpdated) {
-                        chrome.storage.session.remove(['newsTickerProgress', 'newsTickerTimestamp', 'newsTickerPushIndex']);
-                    }
-                }
-            }
-
-            function startPushAnimation() {
-                if (pushInterval) clearTimeout(pushInterval);
-                if (currentPushItems <= 1) return;
-                startPushAnimation_ref = startPushAnimation;
-
-                const totalItems = currentPushItems;
-
-                function tick() {
-                    pushInterval = setTimeout(() => {
-                        // Check if mouse is hovering and pause is enabled
-                        if (hoverPause && container && container.matches(':hover')) {
-                            tick(); 
-                            return;
-                        }
-
-                        currentPushIndex++;
-                        if (currentPushIndex >= totalItems) {
-                            // Reset instantly
-                            track.style.transition = 'none';
-                            currentPushIndex = 0;
-                            track.style.transform = (scrollMode === 'vertical-push') ? `translateY(0)` : `translateX(0)`;
-                            // Force reflow
-                            track.offsetHeight;
-                            track.style.transition = '';
-                            updateNavButtons();
-                            
-                            startPushAnimation(); 
-                        } else {
-                            applyPushTransform();
-                            updateNavButtons();
-                            tick();
-                        }
-                    }, (currentPushIndex === 0) ? 50 : (currentPushIndex === totalItems - 1) ? 500 : verticalPause * 1000);
-                }
-
-                tick();
-            }
-
-            applyScroll();
-            updateNavButtons();
-            rssIsUpdated = false;
-
         } catch (e) {
             console.error('MarQee error:', e);
+            if (!hasCachedData) showStatusMessage('Error loading feeds');
         }
     }
 
