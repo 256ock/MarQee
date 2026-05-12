@@ -92,7 +92,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     (async () => {
         try {
             const settings = await chrome.storage.local.get('newsTickerFetchInterval');
-            const intervalMinutes = settings.newsTickerFetchInterval || 15;
+            const intervalMinutes = settings.newsTickerFetchInterval || DEFAULT_SETTINGS.newsTickerFetchInterval;
             const now = Date.now();
 
             const sessionKey = `lastFetch_${url}`;

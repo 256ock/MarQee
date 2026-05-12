@@ -9,33 +9,33 @@ let userFeeds = [];
 let activeFeedId = null;
 let speedMultiplier = 1.0; // 0.5x to 3.0x
 let hoverPauseEnabled = true; // default: ON
-let fetchInterval = 15; // default: 15 minutes
+let fetchInterval = DEFAULT_SETTINGS.newsTickerFetchInterval;
 let currentColorScheme = 'system';
 let currentVisualEffect = 'none'; // 'none', 'glass', 'led'
-let currentGlassBlur = 12; // default: 12px
-let currentGlassBrightness = 1.0; // default: 1.0
-let ledGridOpacity = 0.6;
-let ledBlendMode = 'overlay';
+let currentGlassBlur = DEFAULT_SETTINGS.newsTickerGlassmorphismBlur;
+let currentGlassBrightness = DEFAULT_SETTINGS.newsTickerGlassBrightness;
+let ledGridOpacity = DEFAULT_SETTINGS.newsTickerLEDOpacity;
+let ledBlendMode = DEFAULT_SETTINGS.newsTickerLEDBlendMode;
 let currentFontWeight = 'normal';
 let articleSortOrder = 'chrono'; // 'chrono', 'random'
 let articleGrouping = 'mixed'; // 'grouped', 'mixed'
 let blinkNewEnabled = true; // default: ON
 let scrollMode = 'vertical-push'; // default: 'vertical-push'
-let verticalPause = 5; // default: 5 seconds
-let currentFontSize = 14; // default: 14px
+let verticalPause = DEFAULT_SETTINGS.newsTickerVerticalPause;
+let currentFontSize = DEFAULT_SETTINGS.newsTickerFontSize;
 let articleAgeFilterEnabled = false;
-let articleAgeHours = 12;
-let excludedDomains = ['x.com', 'youtube.com'];
-let domainFilterMode = 'exclude'; // 'exclude' or 'include'
+let articleAgeHours = DEFAULT_SETTINGS.newsTickerAgeHours;
+let excludedDomains = DEFAULT_SETTINGS.newsTickerExcludedDomains;
+let domainFilterMode = DEFAULT_SETTINGS.newsTickerDomainFilterMode; // 'exclude' or 'include'
 let showLoadingEnabled = true; // default: ON
 
-const DEFAULT_COLOR_LIGHT = '#2563eb';
-const DEFAULT_COLOR_DARK = '#3b82f6';
-const DEFAULT_COLOR_TRICOLOR = '#ff4d4d'; // Legacy
+const DEFAULT_COLOR_LIGHT = DEFAULT_SETTINGS.newsTickerCustomColorLight;
+const DEFAULT_COLOR_DARK = DEFAULT_SETTINGS.newsTickerCustomColorDark;
+const DEFAULT_COLOR_TRICOLOR = DEFAULT_SETTINGS.newsTickerCustomColorTricolor; // Legacy
 
-const DEFAULT_TRICOLOR_LINK = '#ffb000';
-const DEFAULT_TRICOLOR_TIME = '#ff4d4d';
-const DEFAULT_TRICOLOR_SOURCE = '#00ff41';
+const DEFAULT_TRICOLOR_LINK = DEFAULT_SETTINGS.newsTickerTricolorLink;
+const DEFAULT_TRICOLOR_TIME = DEFAULT_SETTINGS.newsTickerTricolorTime;
+const DEFAULT_TRICOLOR_SOURCE = DEFAULT_SETTINGS.newsTickerTricolorSource;
 
 let customColorLight = DEFAULT_COLOR_LIGHT;
 let customColorDark = DEFAULT_COLOR_DARK;
@@ -128,7 +128,7 @@ async function loadFeeds() {
     if (data.newsTickerFeeds) {
         userFeeds = data.newsTickerFeeds;
     } else {
-        userFeeds = [...DEFAULT_FEEDS];
+        userFeeds = DEFAULT_FEEDS.map(feed => ({ ...feed }));
         await saveFeeds();
     }
     if (userFeeds.length > 0) {
@@ -173,9 +173,7 @@ function updateSpeedDisplay(val) {
 async function loadHoverPause() {
     const data = await chrome.storage.local.get('newsTickerHoverPause');
     const saved = data.newsTickerHoverPause;
-
-    // Default to true (enabled) if not set
-    hoverPauseEnabled = (saved === null || saved === undefined) ? true : saved;
+    hoverPauseEnabled = (saved === null || saved === undefined) ? DEFAULT_SETTINGS.newsTickerHoverPause : saved;
     applyHoverPause();
 }
 
@@ -231,8 +229,8 @@ async function saveShowLoading(enabled) {
 
 async function loadScrollSettings() {
     const data = await chrome.storage.local.get(['newsTickerScrollMode', 'newsTickerVerticalPause']);
-    scrollMode = data.newsTickerScrollMode || 'vertical-push';
-    verticalPause = data.newsTickerVerticalPause || 5;
+    scrollMode = data.newsTickerScrollMode || DEFAULT_SETTINGS.newsTickerScrollMode;
+    verticalPause = data.newsTickerVerticalPause || DEFAULT_SETTINGS.newsTickerVerticalPause;
 
     if (scrollModeSelect) scrollModeSelect.value = scrollMode;
     if (pauseSlider) {
@@ -267,7 +265,7 @@ function updateScrollControlVisibility() {
 
 async function loadStyleSettings() {
     const data = await chrome.storage.local.get(['newsTickerColorScheme', 'newsTickerVisualEffect', 'newsTickerGlassmorphismBlur', 'newsTickerGlassBrightness', 'newsTickerLEDStyle', 'newsTickerLEDOpacity', 'newsTickerLEDBlendMode', 'newsTickerFontWeight', 'newsTickerFontSize', 'newsTickerCustomColorLight', 'newsTickerCustomColorDark', 'newsTickerCustomColorTricolor', 'newsTickerTricolorLink', 'newsTickerTricolorTime', 'newsTickerTricolorSource']);
-    currentColorScheme = data.newsTickerColorScheme || 'system';
+    currentColorScheme = data.newsTickerColorScheme || DEFAULT_SETTINGS.newsTickerColorScheme;
 
     customColorLight = data.newsTickerCustomColorLight || DEFAULT_COLOR_LIGHT;
     customColorDark = data.newsTickerCustomColorDark || DEFAULT_COLOR_DARK;
@@ -283,10 +281,12 @@ async function loadStyleSettings() {
         currentColorScheme = 'system';
         await saveColorScheme('system');
     }
-    currentFontWeight = data.newsTickerFontWeight || 'normal';
-    currentFontSize = data.newsTickerFontSize || 14;
-    currentGlassBlur = data.newsTickerGlassmorphismBlur || 12;
-    currentGlassBrightness = data.newsTickerGlassBrightness !== undefined ? data.newsTickerGlassBrightness : 1.0;
+    currentFontWeight = data.newsTickerFontWeight || DEFAULT_SETTINGS.newsTickerFontWeight;
+    currentFontSize = data.newsTickerFontSize || DEFAULT_SETTINGS.newsTickerFontSize;
+    currentGlassBlur = data.newsTickerGlassmorphismBlur || DEFAULT_SETTINGS.newsTickerGlassmorphismBlur;
+    currentGlassBrightness = data.newsTickerGlassBrightness !== undefined ? data.newsTickerGlassBrightness : DEFAULT_SETTINGS.newsTickerGlassBrightness;
+    ledGridOpacity = data.newsTickerLEDOpacity !== undefined ? data.newsTickerLEDOpacity : DEFAULT_SETTINGS.newsTickerLEDOpacity;
+    ledBlendMode = data.newsTickerLEDBlendMode || DEFAULT_SETTINGS.newsTickerLEDBlendMode;
 
     // Load new visual effect key, or migrate from old keys
     if (data.newsTickerVisualEffect) {
@@ -296,7 +296,7 @@ async function loadStyleSettings() {
         const oldGlass = data.newsTickerGlassmorphism || false;
         if (oldLED) currentVisualEffect = 'led';
         else if (oldGlass) currentVisualEffect = 'glass';
-        else currentVisualEffect = 'none';
+        else currentVisualEffect = DEFAULT_SETTINGS.newsTickerVisualEffect;
 
         // Save migrated value
         saveVisualEffect(currentVisualEffect);
@@ -504,13 +504,13 @@ function updateLEDSettingVisibility() {
 
 async function loadArticleSettings() {
     const data = await chrome.storage.local.get(['newsTickerArticleSort', 'newsTickerArticleGroup', 'newsTickerBlinkNew', 'newsTickerAgeFilterEnabled', 'newsTickerAgeHours', 'newsTickerExcludedDomains', 'newsTickerDomainFilterMode']);
-    articleSortOrder = data.newsTickerArticleSort || 'chrono';
-    articleGrouping = data.newsTickerArticleGroup || 'mixed';
-    blinkNewEnabled = data.newsTickerBlinkNew !== undefined ? data.newsTickerBlinkNew : true;
-    articleAgeFilterEnabled = data.newsTickerAgeFilterEnabled || false;
-    articleAgeHours = data.newsTickerAgeHours || 12;
-    excludedDomains = data.newsTickerExcludedDomains || ['x.com', 'youtube.com'];
-    domainFilterMode = data.newsTickerDomainFilterMode || 'exclude';
+    articleSortOrder = data.newsTickerArticleSort || DEFAULT_SETTINGS.newsTickerArticleSort;
+    articleGrouping = data.newsTickerArticleGroup || DEFAULT_SETTINGS.newsTickerArticleGroup;
+    blinkNewEnabled = data.newsTickerBlinkNew !== undefined ? data.newsTickerBlinkNew : DEFAULT_SETTINGS.newsTickerBlinkNew;
+    articleAgeFilterEnabled = data.newsTickerAgeFilterEnabled || DEFAULT_SETTINGS.newsTickerAgeFilterEnabled;
+    articleAgeHours = data.newsTickerAgeHours || DEFAULT_SETTINGS.newsTickerAgeHours;
+    excludedDomains = data.newsTickerExcludedDomains || DEFAULT_SETTINGS.newsTickerExcludedDomains;
+    domainFilterMode = data.newsTickerDomainFilterMode || DEFAULT_SETTINGS.newsTickerDomainFilterMode;
 
     if (articleSortSelect) articleSortSelect.value = articleSortOrder;
     if (articleGroupSelect) articleGroupSelect.value = articleGrouping;

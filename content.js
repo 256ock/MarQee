@@ -1,36 +1,36 @@
 /* content.js */
 (function () {
     let feeds = [];
-    let speed = 1.0;
+    let speed = DEFAULT_SETTINGS.newsTickerSpeed;
     let isVisible = false;
-    let position = 'top';
-    let hoverPause = true;
-    let colorScheme = 'system';
-    let visualEffect = 'none';
-    let ledOpacity = 0.6;
-    let ledBlendMode = 'overlay';
-    let fontWeight = 'normal';
-    let articleSort = 'chrono';
-    let articleGroup = 'mixed';
-    let blinkNew = true;
-    let shiftFixed = false;
-    let scrollMode = 'horizontal';
-    let verticalPause = 3;
-    let fontSize = 14;
-    let articleAgeFilterEnabled = false;
-    let articleAgeHours = 12;
-    let glassBlur = 12;
-    let glassBrightness = 1.0;
-    let excludedDomains = ['x.com', 'youtube.com'];
-    let domainFilterMode = 'exclude'; // 'exclude' or 'include'
-    let customColorLight = '#2563eb';
-    let customColorDark = '#3b82f6';
-    let customColorTricolor = '#ff4d4d';
-    let tricolorLinkColor = '#ffb000';
-    let tricolorTimeColor = '#ff4d4d';
-    let tricolorSourceColor = '#00ff41';
+    let position = DEFAULT_SETTINGS.newsTickerBarPos;
+    let hoverPause = DEFAULT_SETTINGS.newsTickerHoverPause;
+    let colorScheme = DEFAULT_SETTINGS.newsTickerColorScheme;
+    let visualEffect = DEFAULT_SETTINGS.newsTickerVisualEffect;
+    let ledOpacity = DEFAULT_SETTINGS.newsTickerLEDOpacity;
+    let ledBlendMode = DEFAULT_SETTINGS.newsTickerLEDBlendMode;
+    let fontWeight = DEFAULT_SETTINGS.newsTickerFontWeight;
+    let articleSort = DEFAULT_SETTINGS.newsTickerArticleSort;
+    let articleGroup = DEFAULT_SETTINGS.newsTickerArticleGroup;
+    let blinkNew = DEFAULT_SETTINGS.newsTickerBlinkNew;
+    let shiftFixed = DEFAULT_SETTINGS.newsTickerShiftFixed;
+    let scrollMode = DEFAULT_SETTINGS.newsTickerScrollMode;
+    let verticalPause = DEFAULT_SETTINGS.newsTickerVerticalPause;
+    let fontSize = DEFAULT_SETTINGS.newsTickerFontSize;
+    let articleAgeFilterEnabled = DEFAULT_SETTINGS.newsTickerAgeFilterEnabled;
+    let articleAgeHours = DEFAULT_SETTINGS.newsTickerAgeHours;
+    let glassBlur = DEFAULT_SETTINGS.newsTickerGlassmorphismBlur;
+    let glassBrightness = DEFAULT_SETTINGS.newsTickerGlassBrightness;
+    let excludedDomains = DEFAULT_SETTINGS.newsTickerExcludedDomains;
+    let domainFilterMode = DEFAULT_SETTINGS.newsTickerDomainFilterMode; // 'exclude' or 'include'
+    let customColorLight = DEFAULT_SETTINGS.newsTickerCustomColorLight;
+    let customColorDark = DEFAULT_SETTINGS.newsTickerCustomColorDark;
+    let customColorTricolor = DEFAULT_SETTINGS.newsTickerCustomColorTricolor;
+    let tricolorLinkColor = DEFAULT_SETTINGS.newsTickerTricolorLink;
+    let tricolorTimeColor = DEFAULT_SETTINGS.newsTickerTricolorTime;
+    let tricolorSourceColor = DEFAULT_SETTINGS.newsTickerTricolorSource;
     let rssIsUpdated = false;
-    let showLoading = true;
+    let showLoading = DEFAULT_SETTINGS.newsTickerShowLoading;
 
 
     let currentPushItems = 0;
@@ -701,7 +701,7 @@
         newsTickerFeeds: {
             set: v => {
                 feeds = v || [];
-                chrome.storage.session.remove(['newsTickerShuffleSeed', 'newsTickerProgress', 'newsTickerVerticalIndex']);
+                chrome.storage.session.remove(['newsTickerShuffleSeed', 'newsTickerProgress']);
             },
             effect: 'reload'
         },
@@ -764,7 +764,7 @@
             }
             if (shouldHideOnCurrentDomain()) {
                 removeTicker();
-            } else if (isVisible && feeds.length > 0 && !container) {
+            } else if (isVisible && !container) {
                 createTicker().then(() => loadAndRender());
             }
         }
