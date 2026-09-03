@@ -1,2 +1,6 @@
 .DS_Store
 /_Assets/*
+
+# Internal dev docs — kept locally, not published with the public repo
+/AGENTS.md
+/CLAUDE.md
