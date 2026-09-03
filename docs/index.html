@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MarQee Privacy Policy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #eef1f6;
+    --paper-raised: #ffffff;
+    --ink: #161b26;
+    --ink-soft: #4c5568;
+    --ink-faint: #7c86a0;
+    --rule: #c9d0dd;
+    --accent: #b8660a;
+    --accent-strong: #8f4e06;
+    --accent-wash: #fdf1de;
+    --marquee-bg: #14161d;
+    --marquee-ink: #f4ead9;
+    --shadow: 0 1px 2px rgba(20, 24, 38, 0.06), 0 8px 24px -12px rgba(20, 24, 38, 0.18);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #12141c;
+      --paper-raised: #1a1e29;
+      --ink: #e9ecf5;
+      --ink-soft: #aab2c6;
+      --ink-faint: #78829c;
+      --rule: #313749;
+      --accent: #f2a13d;
+      --accent-strong: #ffc069;
+      --accent-wash: #2a2010;
+      --marquee-bg: #0a0b10;
+      --marquee-ink: #f2e4c8;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 28px -12px rgba(0, 0, 0, 0.6);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper: #12141c;
+    --paper-raised: #1a1e29;
+    --ink: #e9ecf5;
+    --ink-soft: #aab2c6;
+    --ink-faint: #78829c;
+    --rule: #313749;
+    --accent: #f2a13d;
+    --accent-strong: #ffc069;
+    --accent-wash: #2a2010;
+    --marquee-bg: #0a0b10;
+    --marquee-ink: #f2e4c8;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 28px -12px rgba(0, 0, 0, 0.6);
+  }
+
+  * { box-sizing: border-box; }
+
+  html { background: var(--paper); }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Source Sans 3', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Decorative ticker strip — the product's own device, used as texture */
+  .mq-strip {
+    background: var(--marquee-bg);
+    color: var(--marquee-ink);
+    overflow: hidden;
+    white-space: nowrap;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.03em;
+    padding: 0.5rem 0;
+    border-bottom: 2px solid var(--accent);
+  }
+  .mq-strip__track {
+    display: inline-block;
+    padding-left: 100%;
+    animation: mq-scroll 26s linear infinite;
+  }
+  .mq-strip__track span { margin-right: 3.5rem; opacity: 0.85; }
+  .mq-strip__track span b { color: var(--accent-strong); font-weight: 500; }
+  @keyframes mq-scroll {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .mq-strip__track { animation: none; padding-left: 1.5rem; }
+  }
+
+  header.mq-masthead {
+    background: var(--marquee-bg);
+    color: var(--marquee-ink);
+    padding: 2.75rem 1.5rem 2.25rem;
+    text-align: center;
+  }
+  .mq-word {
+    font-family: 'Big Shoulders Display', system-ui, sans-serif;
+    font-weight: 800;
+    font-size: clamp(2.4rem, 7vw, 3.6rem);
+    letter-spacing: 0.02em;
+    line-height: 1;
+    margin: 0;
+    text-transform: uppercase;
+  }
+  .mq-word em {
+    font-style: normal;
+    color: var(--accent-strong);
+  }
+  .mq-tagline {
+    margin: 0.65rem 0 0;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.85rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--marquee-ink);
+    opacity: 0.75;
+  }
+
+  main {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 5rem;
+  }
+
+  .mq-summary {
+    background: var(--accent-wash);
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+    font-size: 1.02rem;
+    line-height: 1.65;
+    color: var(--ink);
+    margin: 0 0 2.75rem;
+    box-shadow: var(--shadow);
+  }
+  .mq-summary strong { color: var(--accent-strong); }
+
+  .mq-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.25rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--ink-faint);
+    margin: 0 0 2.5rem;
+  }
+
+  section { margin-bottom: 2.75rem; }
+  section:last-of-type { margin-bottom: 0; }
+
+  h2 {
+    font-family: 'Big Shoulders Display', system-ui, sans-serif;
+    font-weight: 700;
+    font-size: 1.5rem;
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+    color: var(--ink);
+    border-left: 4px solid var(--accent);
+    padding-left: 0.7rem;
+    margin: 0 0 1rem;
+    text-wrap: balance;
+  }
+
+  p { line-height: 1.7; color: var(--ink-soft); margin: 0 0 0.9rem; max-width: 62ch; }
+  p:last-child { margin-bottom: 0; }
+  a { color: var(--accent-strong); text-decoration-color: var(--rule); text-underline-offset: 2px; }
+  a:hover { text-decoration-color: currentColor; }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  ul.mq-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 0.6rem;
+  }
+  ul.mq-list li {
+    position: relative;
+    padding-left: 1.4rem;
+    line-height: 1.6;
+    color: var(--ink-soft);
+  }
+  ul.mq-list li::before {
+    content: '—';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .mq-table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    background: var(--paper-raised);
+    box-shadow: var(--shadow);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.92rem;
+    min-width: 480px;
+  }
+  th, td {
+    text-align: left;
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+    line-height: 1.55;
+  }
+  thead th {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    background: color-mix(in srgb, var(--paper) 60%, var(--paper-raised));
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  td.mq-mono, code {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.85em;
+    color: var(--accent-strong);
+  }
+  td.mq-key { color: var(--ink); font-weight: 600; white-space: nowrap; }
+
+  footer {
+    max-width: 700px;
+    margin: 3.5rem auto 0;
+    padding: 1.5rem 1.5rem 0;
+    border-top: 1px solid var(--rule);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--ink-faint);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.25rem;
+    justify-content: space-between;
+  }
+</style>
+</head>
+<body>
+
+<div class="mq-strip" aria-hidden="true">
+  <div class="mq-strip__track">
+    <span><b>NO ACCOUNTS</b> — nothing to sign in with</span>
+    <span><b>NO ANALYTICS</b> — your usage is not measured</span>
+    <span><b>NO SERVER</b> — MarQee has none to send data to</span>
+    <span><b>LOCAL STORAGE ONLY</b> — settings stay on this device</span>
+    <span><b>NO ACCOUNTS</b> — nothing to sign in with</span>
+    <span><b>NO ANALYTICS</b> — your usage is not measured</span>
+    <span><b>NO SERVER</b> — MarQee has none to send data to</span>
+    <span><b>LOCAL STORAGE ONLY</b> — settings stay on this device</span>
+  </div>
+</div>
+
+<header class="mq-masthead">
+  <p class="mq-word">MAR<em>Q</em>EE</p>
+  <p class="mq-tagline">Privacy Policy — RSS Ticker Extension</p>
+</header>
+
+<main>
+  <div class="mq-meta">
+    <span>Effective: 2026-09-03</span>
+    <span>Applies to: MarQee — RSS Ticker v1.0.1+</span>
+    <span>Platform: Google Chrome</span>
+  </div>
+
+  <div class="mq-summary">
+    <strong>In short:</strong> MarQee runs entirely inside your browser. The feeds you add and the settings you choose
+    are saved with Chrome's built-in <code>storage.local</code> API on your own device — MarQee has no server of its
+    own, so there is nowhere for that data to go. The only network traffic MarQee causes is your browser fetching the
+    RSS feeds you configured, directly from the sites that publish them.
+  </div>
+
+  <section>
+    <h2>What MarQee stores</h2>
+    <div class="mq-table-wrap">
+      <table>
+        <thead>
+          <tr><th>Data</th><th>Where it lives</th><th>Why</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="mq-key">RSS feed list</td>
+            <td class="mq-mono">chrome.storage.local</td>
+            <td>Remembers the feeds you've added so the ticker can keep pulling headlines from them.</td>
+          </tr>
+          <tr>
+            <td class="mq-key">Ticker settings</td>
+            <td class="mq-mono">chrome.storage.local</td>
+            <td>Position, scroll speed, colors, effects, filters — everything on the Settings tabs.</td>
+          </tr>
+          <tr>
+            <td class="mq-key">Fetched headlines</td>
+            <td class="mq-mono">In-memory cache (1h)</td>
+            <td>Short-lived copy of each feed's latest items, so the ticker doesn't refetch on every page load.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="margin-top:0.9rem;">
+      None of this leaves your device. Uninstalling MarQee, or clearing the extension's storage in Chrome, deletes it
+      permanently. Exporting a backup from the Backup tab writes a plain JSON file to your own computer — MarQee never
+      uploads it anywhere.
+    </p>
+  </section>
+
+  <section>
+    <h2>What MarQee does not do</h2>
+    <ul class="mq-list">
+      <li>It does not operate a server, database, or API — there is no back end to send your data to.</li>
+      <li>It does not use analytics, advertising SDKs, or third-party trackers of any kind.</li>
+      <li>It does not read, log, or transmit the content of the pages you browse.</li>
+      <li>It does not require an account, email address, or any personal identifier.</li>
+      <li>It does not sell or share data, because it never collects any to begin with.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Network requests</h2>
+    <p>
+      When the ticker refreshes, your browser makes a direct HTTPS request to the feed URL you configured — the same
+      request your browser would make if you visited that URL yourself. MarQee's defaults are BBC World, TechCrunch,
+      and NASA Breaking News; anything beyond that is a feed you chose to add. Those requests are governed by each
+      publisher's own privacy policy, not MarQee's.
+    </p>
+  </section>
+
+  <section>
+    <h2>Permissions, and why they're requested</h2>
+    <div class="mq-table-wrap">
+      <table>
+        <thead>
+          <tr><th>Permission</th><th>Used for</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="mq-key mq-mono">storage</td>
+            <td>Saving your feed list and settings locally, as described above.</td>
+          </tr>
+          <tr>
+            <td class="mq-key mq-mono">activeTab</td>
+            <td>Detecting whether the page you're currently viewing publishes an RSS feed, to power the "Quick Add" banner. MarQee only looks at feed links — it doesn't read the rest of the page.</td>
+          </tr>
+          <tr>
+            <td class="mq-key mq-mono">alarms</td>
+            <td>Waking the extension on a schedule to refresh your feeds at the interval you set.</td>
+          </tr>
+          <tr>
+            <td class="mq-key mq-mono">Host access (all sites)</td>
+            <td>Drawing the ticker bar itself, since you can choose to show it on any site you visit. The content script only adds the ticker overlay — it does not collect anything from the host page.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Children's privacy</h2>
+    <p>
+      MarQee is not directed at children and does not knowingly collect information from anyone, including children
+      under 13 — it does not collect personal information from any user, of any age.
+    </p>
+  </section>
+
+  <section>
+    <h2>Changes to this policy</h2>
+    <p>
+      If MarQee's data practices change, this page will be updated and the effective date above will change with it.
+      Continued use of the extension after an update means you accept the revised policy.
+    </p>
+  </section>
+
+  <section>
+    <h2>Contact</h2>
+    <p>
+      Questions about this policy or how MarQee handles data can be raised as an issue on the project's GitHub
+      repository: <a href="https://github.com/256ock/MarQee/issues" target="_blank" rel="noopener">github.com/256ock/MarQee/issues</a>.
+      The extension's source code is public in the same repository.
+    </p>
+  </section>
+</main>
+
+<footer>
+  <span>MarQee — RSS Ticker</span>
+  <span>github.com/256ock/MarQee</span>
+</footer>
+</body>
+</html>
