@@ -65,7 +65,7 @@
 
     async function init() {
         // 1. Early load for layout-shift prevention (BarVisible / FontSize / domain gates)
-        const initialData = await chrome.storage.local.get(EARLY_DEFAULTS);
+        const initialData = normalizeSettings(await chrome.storage.local.get(EARLY_DEFAULTS));
         isVisible        = initialData.newsTickerBarVisible;
         excludedDomains  = initialData.newsTickerExcludedDomains;
         domainFilterMode = initialData.newsTickerDomainFilterMode;
@@ -75,15 +75,17 @@
         // 2. Defer the rest to idle. Always load full settings so the change listener
         //    works correctly even if the bar was hidden at startup.
         const idleCallback = window.requestIdleCallback || ((cb) => setTimeout(cb, 1000));
-        idleCallback(async () => {
+        idleCallback(() => void (async () => {
             // Two parallel gets: defaults form for normal settings, raw form for
             // legacy migration check (need undefined-detection for visualEffect).
-            const [data, legacy] = await Promise.all([
+            const [storedData, legacy] = await Promise.all([
                 chrome.storage.local.get({ ...DEFAULT_SETTINGS, newsTickerFeeds: [] }),
                 chrome.storage.local.get(['newsTickerVisualEffect', 'newsTickerLEDStyle', 'newsTickerGlassmorphism'])
             ]);
 
-            feeds                   = data.newsTickerFeeds;
+            const data = normalizeSettings(storedData);
+
+            feeds                   = normalizeFeeds(storedData.newsTickerFeeds);
             speed                   = data.newsTickerSpeed;
             position                = data.newsTickerBarPos;
             hoverPause              = data.newsTickerHoverPause;
@@ -133,7 +135,10 @@
                 });
                 observer.observe(document.documentElement, { childList: true });
             }
-        }, { timeout: 1000 });
+        })().catch(error => {
+            console.error('MarQee initialization error:', error);
+            removeTicker();
+        }), { timeout: 1000 });
     }
 
     async function createTicker() {
@@ -148,6 +153,7 @@
 
         try {
             const response = await fetch(chrome.runtime.getURL('content.css'));
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             let cssText = await response.text();
             
             // Fix relative URLs in CSS (like led-tile.png) to be absolute extension URLs
@@ -349,8 +355,8 @@
 
     function removeTicker() {
         if (pushInterval) clearTimeout(pushInterval);
+        unshiftFixedElements();
         if (container) {
-            unshiftFixedElements();
             container.remove();
             container = null;
             track = null;
@@ -358,9 +364,9 @@
             navButtonsEl = null;
             navUpBtn = null;
             navDownBtn = null;
-            document.documentElement.style.removeProperty('margin-top');
-            document.documentElement.style.removeProperty('margin-bottom');
         }
+        document.documentElement.style.removeProperty('margin-top');
+        document.documentElement.style.removeProperty('margin-bottom');
     }
 
     function showStatusMessage(text) {
@@ -448,6 +454,7 @@
             const linkA = document.createElement('a');
             linkA.href = item.link;
             linkA.target = '_blank';
+            linkA.rel = 'noopener';
             linkA.className = 'mq-link';
             linkA.textContent = item.title;
 
@@ -707,20 +714,25 @@
         },
     };
 
-    chrome.storage.onChanged.addListener((changes) => {
+    chrome.storage.onChanged.addListener((changes, areaName) => {
+        if (areaName !== 'local') return;
+
         let needsStyle = false, needsReload = false;
+        const changedSettings = normalizeSettings(Object.fromEntries(
+            Object.entries(changes).map(([key, change]) => [key, change.newValue])
+        ));
 
         for (const [key, change] of Object.entries(changes)) {
             const handler = SETTING_HANDLERS[key];
             if (!handler) continue;
-            handler.set(change.newValue);
+            handler.set(key === 'newsTickerFeeds' ? normalizeFeeds(change.newValue) : changedSettings[key]);
             if (handler.effect === 'style') needsStyle = true;
             else if (handler.effect === 'reload') needsReload = true;
             else if (typeof handler.effect === 'function') handler.effect();
         }
 
         if (changes.newsTickerBarVisible) {
-            isVisible = changes.newsTickerBarVisible.newValue;
+            isVisible = changedSettings.newsTickerBarVisible;
             if (isVisible && !shouldHideOnCurrentDomain()) {
                 createTicker().then(() => loadAndRender());
             } else {
@@ -730,7 +742,7 @@
         }
 
         if (changes.newsTickerBarPos) {
-            position = changes.newsTickerBarPos.newValue;
+            position = changedSettings.newsTickerBarPos;
             if (container) {
                 container.classList.remove('mq-top', 'mq-bottom');
                 container.classList.add(`mq-${position}`);
@@ -741,7 +753,7 @@
         }
 
         if (changes.newsTickerScrollMode) {
-            scrollMode = changes.newsTickerScrollMode.newValue;
+            scrollMode = changedSettings.newsTickerScrollMode;
             if (container) {
                 applyModeClasses();
                 needsReload = true;
@@ -749,7 +761,7 @@
         }
 
         if (changes.newsTickerFontSize) {
-            fontSize = changes.newsTickerFontSize.newValue;
+            fontSize = changedSettings.newsTickerFontSize;
             needsStyle = true;
             updateBodyPadding();
             if (isPushMode()) needsReload = true;
@@ -757,10 +769,10 @@
 
         if (changes.newsTickerExcludedDomains || changes.newsTickerDomainFilterMode) {
             if (changes.newsTickerExcludedDomains) {
-                excludedDomains = changes.newsTickerExcludedDomains.newValue || [];
+                excludedDomains = changedSettings.newsTickerExcludedDomains;
             }
             if (changes.newsTickerDomainFilterMode) {
-                domainFilterMode = changes.newsTickerDomainFilterMode.newValue || 'exclude';
+                domainFilterMode = changedSettings.newsTickerDomainFilterMode;
             }
             if (shouldHideOnCurrentDomain()) {
                 removeTicker();
@@ -855,5 +867,8 @@
         }
     });
 
-    init();
+    void init().catch(error => {
+        console.error('MarQee initialization error:', error);
+        removeTicker();
+    });
 })();

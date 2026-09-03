@@ -3,19 +3,16 @@ importScripts('defaults.js');
 const rssDataCache = new Map(); // url -> { items, timestamp }
 const CACHE_TTL = 3600000; // 1 hour in milliseconds
 const CLEANUP_ALARM_NAME = 'cacheCleanup';
+const FETCH_TIMEOUT_MS = 15000;
+const MAX_RSS_RESPONSE_BYTES = 1024 * 1024;
+const MAX_RSS_FIELD_LENGTH = 4096;
 
-// Enable Content Script to access chrome.storage.session
+// Content scripts need session access only for the ticker's RSS cache and progress state.
 async function setAccess() {
-    try {
-        await chrome.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS' });
-    } catch (e) {
-        console.error('Failed to set access level:', e);
-    }
+    await chrome.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS' });
 }
 
-chrome.runtime.onInstalled.addListener(async () => {
-    setAccess();
-
+async function initializeMissingSettings() {
     // Initialize any missing settings with defaults (incl. newsTickerFeeds).
     const keys = [...ALL_SETTINGS_KEYS, 'newsTickerFeeds'];
     const storage = await chrome.storage.local.get(keys);
@@ -29,18 +26,28 @@ chrome.runtime.onInstalled.addListener(async () => {
     if (Object.keys(updates).length > 0) {
         await chrome.storage.local.set(updates);
     }
+}
 
-    initIconState();
+async function initializeExtension({ initializeSettings = false } = {}) {
+    await setAccess();
+    if (initializeSettings) await initializeMissingSettings();
+    await initIconState();
+}
+
+function logInitializationError(error) {
+    console.error('MarQee initialization failed:', error);
+}
+
+chrome.runtime.onInstalled.addListener(() => {
+    void initializeExtension({ initializeSettings: true }).catch(logInitializationError);
 });
 
 chrome.runtime.onStartup.addListener(() => {
-    setAccess();
-    initIconState();
+    void initializeExtension().catch(logInitializationError);
 });
 
-// Also run on every SW wake-up so the icon survives idle restarts
-setAccess();
-initIconState();
+// Also run on every SW wake-up so the icon survives idle restarts.
+void initializeExtension().catch(logInitializationError);
 
 async function initIconState() {
     // Release memory on wake-up (clean expired items)
@@ -48,12 +55,12 @@ async function initIconState() {
 
     const data = await chrome.storage.local.get('newsTickerBarVisible');
     const isVisible = data.newsTickerBarVisible !== false;
-    updateIcon(isVisible);
+    await updateIcon(isVisible);
 }
 
 function updateIcon(isTickerVisible) {
     const suffix = isTickerVisible ? '' : '_gray';
-    chrome.action.setIcon({
+    return chrome.action.setIcon({
         path: {
             "16": `icons/icon16${suffix}.png`,
             "48": `icons/icon48${suffix}.png`,
@@ -66,33 +73,43 @@ chrome.storage.onChanged.addListener((changes, area) => {
     if (area !== 'local') return;
 
     if (changes.newsTickerBarVisible) {
-        updateIcon(changes.newsTickerBarVisible.newValue);
+        void updateIcon(changes.newsTickerBarVisible.newValue).catch(error => {
+            console.error('MarQee icon update failed:', error);
+        });
     }
     if (changes.newsTickerFeeds) {
         // Clear in-memory cache
         rssDataCache.clear();
 
         // Clear session storage: fetch timestamps AND cached item arrays
-        chrome.storage.session.get(null).then(allData => {
+        void chrome.storage.session.get(null).then(allData => {
             const keysToRemove = Object.keys(allData).filter(key =>
                 key.startsWith('lastFetch_') || key.startsWith('rssItems_')
             );
             if (keysToRemove.length > 0) {
-                chrome.storage.session.remove(keysToRemove);
+                return chrome.storage.session.remove(keysToRemove);
             }
+            return undefined;
+        }).catch(error => {
+            console.error('MarQee cache cleanup failed:', error);
         });
     }
 });
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.action !== 'fetchRSS') return;
+    if (request?.action !== 'fetchRSS' || sender.id !== chrome.runtime.id || !sender.tab) return;
 
-    const { url } = request;
+    const url = normalizeFeedUrl(request.url);
+    if (!url) {
+        sendResponse({ success: false, error: 'Invalid RSS URL' });
+        return;
+    }
 
     (async () => {
         try {
-            const settings = await chrome.storage.local.get('newsTickerFetchInterval');
-            const intervalMinutes = settings.newsTickerFetchInterval || DEFAULT_SETTINGS.newsTickerFetchInterval;
+            const storedSettings = await chrome.storage.local.get('newsTickerFetchInterval');
+            const settings = normalizeSettings(storedSettings);
+            const intervalMinutes = settings.newsTickerFetchInterval;
             const now = Date.now();
 
             const sessionKey = `lastFetch_${url}`;
@@ -106,7 +123,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 const cached = rssDataCache.get(url);
                 if (now - cached.timestamp < CACHE_TTL) {
                     // Refresh session item cache so content scripts on new pages render instantly
-                    chrome.storage.session.set({ [`rssItems_${url}`]: cached.items });
+                    await chrome.storage.session.set({ [`rssItems_${url}`]: cached.items });
                     sendResponse({ success: true, data: cached.items, isUpdated: false });
                     return;
                 }
@@ -115,9 +132,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             }
 
             // Otherwise fetch new data
-            const response = await fetch(url);
+            const response = await fetchRSS(url);
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            const text = await response.text();
+            const text = await readRSSResponse(response);
 
             const items = parseRSS(text);
             rssDataCache.set(url, { items, timestamp: now });
@@ -133,23 +150,65 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             const shouldReset = !withinInterval;
             sendResponse({ success: true, data: items, isUpdated: shouldReset });
         } catch (error) {
-            sendResponse({ success: false, error: error.message });
+            sendResponse({ success: false, error: error instanceof Error ? error.message : 'RSS fetch failed' });
         }
     })();
     return true;
 });
 
+async function fetchRSS(url) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
+    try {
+        return await fetch(url, {
+            credentials: 'omit',
+            referrerPolicy: 'no-referrer',
+            signal: controller.signal
+        });
+    } finally {
+        clearTimeout(timeout);
+    }
+}
+
+async function readRSSResponse(response) {
+    const contentLength = Number(response.headers.get('content-length'));
+    if (Number.isFinite(contentLength) && contentLength > MAX_RSS_RESPONSE_BYTES) {
+        throw new Error('RSS response exceeds the 1 MB limit');
+    }
+
+    if (!response.body) throw new Error('RSS response body is unavailable');
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    const chunks = [];
+    let receivedBytes = 0;
+
+    try {
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            receivedBytes += value.byteLength;
+            if (receivedBytes > MAX_RSS_RESPONSE_BYTES) {
+                await reader.cancel();
+                throw new Error('RSS response exceeds the 1 MB limit');
+            }
+            chunks.push(decoder.decode(value, { stream: true }));
+        }
+        chunks.push(decoder.decode());
+        return chunks.join('');
+    } finally {
+        reader.releaseLock();
+    }
+}
+
 function cleanCache() {
     const now = Date.now();
-    let count = 0;
     for (const [url, entry] of rssDataCache.entries()) {
         if (now - entry.timestamp > CACHE_TTL) {
             rssDataCache.delete(url);
-            count++;
         }
-    }
-    if (count > 0) {
-        console.log(`Cache cleaned: ${count} expired entries removed.`);
     }
 }
 
@@ -171,10 +230,12 @@ function extractTag(str, tag) {
     if (content.startsWith("<![CDATA[") && content.endsWith("]]>")) {
         content = content.substring(9, content.length - 3);
     }
-    return decodeXMLEntities(content.trim());
+    return decodeXMLEntities(content.trim()).slice(0, MAX_RSS_FIELD_LENGTH);
 }
 
 function parseRSS(xmlString) {
+    if (typeof xmlString !== 'string') return [];
+
     const results = [];
     const itemRegex = /<item\b[^>]*>([\s\S]*?)<\/item>/gi;
 
@@ -187,10 +248,7 @@ function parseRSS(xmlString) {
         const linkStr = extractTag(itemStr, 'link');
         const pubDateStr = extractTag(itemStr, 'pubDate');
 
-        let link = linkStr || "#";
-        if (link !== "#" && !link.startsWith("http://") && !link.startsWith("https://")) {
-            link = "#";
-        }
+        const link = normalizeFeedUrl(linkStr) || '#';
 
         let timeStr = "";
         let pubDateValue = 0;

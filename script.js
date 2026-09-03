@@ -125,8 +125,8 @@ const feedForm = document.querySelector('.mq-feed-form-container');
 
 async function loadFeeds() {
     const data = await chrome.storage.local.get('newsTickerFeeds');
-    if (data.newsTickerFeeds) {
-        userFeeds = data.newsTickerFeeds;
+    if (Array.isArray(data.newsTickerFeeds)) {
+        userFeeds = normalizeFeeds(data.newsTickerFeeds);
     } else {
         userFeeds = DEFAULT_FEEDS.map(feed => ({ ...feed }));
         await saveFeeds();
@@ -264,7 +264,8 @@ function updateScrollControlVisibility() {
 }
 
 async function loadStyleSettings() {
-    const data = await chrome.storage.local.get(['newsTickerColorScheme', 'newsTickerVisualEffect', 'newsTickerGlassmorphismBlur', 'newsTickerGlassBrightness', 'newsTickerLEDStyle', 'newsTickerLEDOpacity', 'newsTickerLEDBlendMode', 'newsTickerFontWeight', 'newsTickerFontSize', 'newsTickerCustomColorLight', 'newsTickerCustomColorDark', 'newsTickerCustomColorTricolor', 'newsTickerTricolorLink', 'newsTickerTricolorTime', 'newsTickerTricolorSource']);
+    const storedData = await chrome.storage.local.get(['newsTickerColorScheme', 'newsTickerVisualEffect', 'newsTickerGlassmorphismBlur', 'newsTickerGlassBrightness', 'newsTickerLEDStyle', 'newsTickerLEDOpacity', 'newsTickerLEDBlendMode', 'newsTickerFontWeight', 'newsTickerFontSize', 'newsTickerCustomColorLight', 'newsTickerCustomColorDark', 'newsTickerCustomColorTricolor', 'newsTickerTricolorLink', 'newsTickerTricolorTime', 'newsTickerTricolorSource']);
+    const data = { ...storedData, ...normalizeSettings(storedData) };
     currentColorScheme = data.newsTickerColorScheme || DEFAULT_SETTINGS.newsTickerColorScheme;
 
     customColorLight = data.newsTickerCustomColorLight || DEFAULT_COLOR_LIGHT;
@@ -503,7 +504,8 @@ function updateLEDSettingVisibility() {
 }
 
 async function loadArticleSettings() {
-    const data = await chrome.storage.local.get(['newsTickerArticleSort', 'newsTickerArticleGroup', 'newsTickerBlinkNew', 'newsTickerAgeFilterEnabled', 'newsTickerAgeHours', 'newsTickerExcludedDomains', 'newsTickerDomainFilterMode']);
+    const storedData = await chrome.storage.local.get(['newsTickerArticleSort', 'newsTickerArticleGroup', 'newsTickerBlinkNew', 'newsTickerAgeFilterEnabled', 'newsTickerAgeHours', 'newsTickerExcludedDomains', 'newsTickerDomainFilterMode']);
+    const data = normalizeSettings(storedData);
     articleSortOrder = data.newsTickerArticleSort || DEFAULT_SETTINGS.newsTickerArticleSort;
     articleGrouping = data.newsTickerArticleGroup || DEFAULT_SETTINGS.newsTickerArticleGroup;
     blinkNewEnabled = data.newsTickerBlinkNew !== undefined ? data.newsTickerBlinkNew : DEFAULT_SETTINGS.newsTickerBlinkNew;
@@ -527,7 +529,9 @@ async function loadArticleSettings() {
 
 async function saveExcludedDomains() {
     const text = excludedDomainsTextarea.value.trim();
-    excludedDomains = text ? text.split('\n').map(d => d.trim()).filter(d => d !== '') : [];
+    excludedDomains = normalizeSettings({
+        newsTickerExcludedDomains: text ? text.split('\n') : []
+    }).newsTickerExcludedDomains;
     await chrome.storage.local.set({ 
         'newsTickerExcludedDomains': excludedDomains,
         'newsTickerDomainFilterMode': domainFilterMode
@@ -658,10 +662,14 @@ function applyTheme(scheme) {
 let draggedItemIndex = null;
 
 function renderSettingsFeedList() {
-    feedList.innerHTML = '';
+    feedList.replaceChildren();
 
     if (userFeeds.length === 0) {
-        feedList.innerHTML = '<li style="color:var(--text-tertiary);font-size:0.9rem;">No feeds configured.</li>';
+        const emptyItem = document.createElement('li');
+        emptyItem.style.color = 'var(--mq-text-tertiary)';
+        emptyItem.style.fontSize = '0.9rem';
+        emptyItem.textContent = 'No feeds configured.';
+        feedList.appendChild(emptyItem);
         return;
     }
 
@@ -672,6 +680,7 @@ function renderSettingsFeedList() {
         li.dataset.index = index;
         if (feed.enabled === false) li.classList.add('mq-disabled');
 
+        // This template is static. Feed data is assigned below with textContent.
         li.innerHTML = `
             <div class="mq-drag-handle" aria-label="Drag to reorder">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="12" r="1"></circle><circle cx="9" cy="5" r="1"></circle><circle cx="9" cy="19" r="1"></circle><circle cx="15" cy="12" r="1"></circle><circle cx="15" cy="5" r="1"></circle><circle cx="15" cy="19" r="1"></circle></svg>
@@ -681,18 +690,21 @@ function renderSettingsFeedList() {
                 <span class="mq-toggle-slider"></span>
             </label>
             <div class="mq-feed-info">
-                <span class="mq-feed-name">${escapeHTML(feed.name)}</span>
-                <span class="mq-feed-url">${escapeHTML(feed.url)}</span>
+                <span class="mq-feed-name"></span>
+                <span class="mq-feed-url"></span>
             </div>
             <div class="mq-feed-item-actions" style="display:flex; gap:0.25rem;">
                 <button class="mq-edit-btn" type="button" data-index="${index}" aria-label="Edit">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                 </button>
-                <button class="mq-delete-btn" type="button" data-id="${feed.id}" aria-label="Delete">
+                <button class="mq-delete-btn" type="button" aria-label="Delete">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                 </button>
             </div>
         `;
+
+        li.querySelector('.mq-feed-name').textContent = feed.name;
+        li.querySelector('.mq-feed-url').textContent = feed.url;
 
         if (editingFeedId === feed.id) {
             li.classList.add('mq-editing');
@@ -817,17 +829,20 @@ function handleCancelEdit() {
 
 async function handleUpdateFeed() {
     const name = newGenreNameInput.value.trim();
-    const url = newFeedUrlInput.value.trim();
+    const url = normalizeFeedUrl(newFeedUrlInput.value);
 
     if (!name || !url) {
-        alert('Please enter Source Name and RSS URL.');
+        alert('Please enter a source name and a valid http:// or https:// RSS URL.');
         return;
     }
 
     const index = userFeeds.findIndex(f => f.id === editingFeedId);
     if (index !== -1) {
-        userFeeds[index].name = name;
-        userFeeds[index].url = url;
+        userFeeds[index] = {
+            ...userFeeds[index],
+            name: name.slice(0, 256),
+            url
+        };
         await saveFeeds();
     }
 
@@ -840,22 +855,16 @@ function handleAddFeed() {
         return;
     }
     const name = newGenreNameInput.value.trim();
-    const url = newFeedUrlInput.value.trim();
+    const url = normalizeFeedUrl(newFeedUrlInput.value);
 
     if (!name || !url) {
-        alert('Please enter Source Name and RSS URL.');
-        return;
-    }
-
-    // Very basic URL validation
-    if (!url.startsWith('http://') && !url.startsWith('https://')) {
-        alert('Please enter a valid URL (starting with http:// or https://).');
+        alert('Please enter a source name and a valid http:// or https:// RSS URL.');
         return;
     }
 
     const newFeed = {
         id: 'feed_' + Date.now(),
-        name,
+        name: name.slice(0, 256),
         url,
         enabled: true
     };
@@ -874,19 +883,6 @@ function handleDeleteFeed(feedId) {
     userFeeds = userFeeds.filter(f => f.id !== feedId);
     saveFeeds();
     renderSettingsFeedList();
-}
-
-// Utility: Escape HTML to prevent XSS (since we generate innerHTML)
-function escapeHTML(str) {
-    return str.replace(/[&<>'"]/g,
-        tag => ({
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            "'": '&#39;',
-            '"': '&quot;'
-        }[tag] || tag)
-    );
 }
 
 /** Briefly change a button's label (and optionally its bg/color), then restore. */
@@ -947,9 +943,14 @@ async function exportData() {
 
 /** インポートファイル選択後 → バリデーションしてダイアログを開く */
 let pendingImportData = null;
+const MAX_IMPORT_FILE_BYTES = 1024 * 1024;
 
 function handleImportFileSelected(file) {
     if (!file) return;
+    if (file.size > MAX_IMPORT_FILE_BYTES) {
+        showToast('Backup file exceeds the 1 MB limit.', 'error');
+        return;
+    }
 
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -974,9 +975,9 @@ function handleImportFileSelected(file) {
         pendingImportData = data;
 
         // ダイアログにメタ情報を表示
-        const validFeeds = data.feeds.filter(f => f && f.url);
+        const validFeeds = normalizeFeeds(data.feeds);
         const feedCount = validFeeds.length;
-        const hasSettings = data.settings && Object.keys(data.settings).length > 0;
+        const hasSettings = data.settings && typeof data.settings === 'object' && !Array.isArray(data.settings) && Object.keys(data.settings).length > 0;
         const exportedDate = data.exportedAt
             ? new Date(data.exportedAt).toLocaleString()
             : 'Unknown date';
@@ -1012,6 +1013,7 @@ function handleImportFileSelected(file) {
         const dialog = document.getElementById('mq-import-dialog');
         if (dialog) dialog.showModal();
     };
+    reader.onerror = () => showToast('Unable to read backup file.', 'error');
     reader.readAsText(file);
 }
 
@@ -1019,14 +1021,7 @@ function handleImportFileSelected(file) {
 async function applyImport(data, mode) {
     // フィードを復元（feeds / full モード）
     if (mode === 'feeds' || mode === 'full') {
-        const restoredFeeds = (data.feeds || [])
-            .filter(f => f && f.url && (f.url.startsWith('http://') || f.url.startsWith('https://')))
-            .map((f, i) => ({
-                id: f.id || `feed_${Date.now()}_${i}`,
-                name: f.name || 'Unnamed',
-                url: f.url,
-                enabled: f.enabled !== false
-            }));
+        const restoredFeeds = normalizeFeeds(data.feeds);
 
         await chrome.storage.local.set({ newsTickerFeeds: restoredFeeds });
         userFeeds = restoredFeeds;
@@ -1034,11 +1029,12 @@ async function applyImport(data, mode) {
     }
 
     // 設定を復元（settings / full モード）
-    if ((mode === 'settings' || mode === 'full') && data.settings) {
+    if ((mode === 'settings' || mode === 'full') && data.settings && typeof data.settings === 'object' && !Array.isArray(data.settings)) {
+        const normalizedSettings = normalizeSettings(data.settings);
         const toSave = {};
         ALL_SETTINGS_KEYS.forEach(key => {
-            if (data.settings[key] !== undefined) {
-                toSave[key] = data.settings[key];
+            if (Object.prototype.hasOwnProperty.call(data.settings, key)) {
+                toSave[key] = normalizedSettings[key];
             }
         });
         await chrome.storage.local.set(toSave);
@@ -1052,9 +1048,10 @@ async function applyImport(data, mode) {
         await loadScrollSettings();
 
         // ヘッダー部分（barVisible / pos / shiftFixed）を再反映
-        const d = await chrome.storage.local.get(
+        const storedHeaderSettings = await chrome.storage.local.get(
             ['newsTickerBarVisible', 'newsTickerBarPos', 'newsTickerShiftFixed']
         );
+        const d = normalizeSettings(storedHeaderSettings);
         const tickerBarToggle = document.getElementById('mq-ticker-bar-toggle');
         if (tickerBarToggle) tickerBarToggle.checked = d.newsTickerBarVisible || false;
 
@@ -1073,9 +1070,7 @@ async function applyImport(data, mode) {
     }
 
     // トースト表示
-    const feedCount = (data.feeds || []).filter(
-        f => f && f.url && (f.url.startsWith('http://') || f.url.startsWith('https://'))
-    ).length;
+    const feedCount = normalizeFeeds(data.feeds).length;
     const label = mode === 'full'     ? `Full restore complete (${feedCount} feed${feedCount !== 1 ? 's' : ''})` :
                   mode === 'settings' ? 'Settings restored' :
                                         `Feeds restored (${feedCount} feed${feedCount !== 1 ? 's' : ''})`;
@@ -1424,8 +1419,11 @@ async function init() {
                 const [t] = await chrome.tabs.query({ active: true, currentWindow: true });
                 if (!t?.url) return;
 
-                const feedName = t.title || new URL(t.url).hostname;
-                const feedUrl = t.url;
+                const feedUrl = normalizeFeedUrl(t.url);
+                if (!feedUrl) return;
+                const feedName = typeof t.title === 'string' && t.title.trim()
+                    ? t.title.trim().slice(0, 256)
+                    : new URL(feedUrl).hostname;
 
                 if (userFeeds.some(f => f.url === feedUrl)) {
                     quickAddBtn.textContent = 'Already Added';
@@ -1434,7 +1432,7 @@ async function init() {
                 }
 
                 userFeeds.push({ id: 'feed_' + Date.now(), name: feedName, url: feedUrl, enabled: true });
-                saveFeeds();
+                await saveFeeds();
 
                 quickAddBtn.textContent = 'Added!';
                 quickAddBtn.disabled = true;
@@ -1529,4 +1527,6 @@ async function init() {
 }
 
 // Run on load
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', () => {
+    void init().catch(error => console.error('MarQee popup initialization failed:', error));
+});
