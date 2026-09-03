@@ -11,9 +11,11 @@
 
 MarQee is a Chrome extension (Manifest V3) that injects a customizable RSS ticker bar into any web page. Register your RSS feeds, choose a visual style, and let the news flow — at the top or bottom of every site you visit.
 
-MarQee works with RSS feeds in **any language** — it just reads whatever text the feed publishes, so a feed in Japanese, French, Arabic, or any other language scrolls exactly like an English one.
+MarQee works with RSS feeds in **any language** — it just reads whatever text the feed publishes, so a feed in Japanese, French, or any other left-to-right language scrolls exactly like an English one.
 
 *(For readers who don't speak English: MarQee has no built-in language restriction. It will display headlines in whatever language your chosen feeds are written in — Japanese, Korean, Chinese, French, and so on all work.)*
+
+> **Note:** The horizontal scroll direction is fixed right-to-left and isn't mirrored for right-to-left languages (e.g. Arabic, Hebrew) yet. Feed text still displays correctly — only the scrolling direction doesn't match the reading direction.
 
 ---
 
