@@ -242,11 +242,9 @@ body {
 }
 
 .mq-tab-btn.active {
-    color: var(--mq-text-primary);
-    background: var(--mq-bg-tertiary);
-    border-left: 3px solid var(--mq-accent-primary);
-    border-radius: 4px 8px 8px 4px;
-    /* Flatter left side because of border */
+    color: #fff;
+    background: var(--mq-accent-primary);
+    border-radius: 8px;
 }
 
 /* Base Body Area */
